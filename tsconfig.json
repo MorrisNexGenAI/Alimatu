@@ -1,0 +1,14 @@
+// filepath: c:\Users\User\Desktop\New folder\Desktop\GradeSheet\learn-pwa\tsconfig.json
+{
+  "compilerOptions": {
+    "baseUrl": "./", // Set the base directory for resolving paths
+    "paths": {
+      "@/*": ["src/*"] // Map the alias '@/' to the 'src' directory
+    }
+  },
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ]
+}
