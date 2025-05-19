@@ -1,36 +1,25 @@
-import { useState, useEffect } from 'react';
-import axios from '../lib/axios';
-import type {Student} from '../types/student'
+// hooks/useStudents.ts
 
+import { useAppDispatch, useAppSelector } from '../store/hooks'; // ✅ Correct
+// Update the path if your hooks file is in 'src/hooks/index.ts' or adjust to the correct relative path
+import {
+  fetchStudents,
+  addStudent,
+  updateStudent,
+  deleteStudent,
+} from '../features/students/studentSlice';
 
-const useStudents = () => {
-  const [students, setStudents] = useState<Student[]>([]);
+export const useStudents = () => {
+  const dispatch = useAppDispatch();
+  const { students, loading, error } = useAppSelector((state: any) => state.students);
 
-  const fetchStudents = async () => {
-    const res = await axios.get('/students');
-    setStudents(res.data);
+  return {
+    students,
+    loading,
+    error,
+    fetchStudents: () => dispatch(fetchStudents()),
+    addStudent: (data: any) => dispatch(addStudent(data)),
+    updateStudent: (data: any) => dispatch(updateStudent(data)),
+    deleteStudent: (id: number) => dispatch(deleteStudent(id)),
   };
-
-  const createStudent = async (student: Omit<Student, 'id'>) => {
-    const res = await axios.post('/students', student);
-    setStudents([...students, res.data]);
-  };
-
-  const updateStudent = async (id: number, student: Partial<Student>) => {
-    const res = await axios.put(`/students/${id}`, student);
-    setStudents(students.map(s => (s.id === id ? res.data : s)));
-  };
-
-  const deleteStudent = async (id: number) => {
-    await axios.delete(`/students/${id}`);
-    setStudents(students.filter(s => s.id !== id));
-  };
-
-  useEffect(() => {
-    fetchStudents();
-  }, []);
-
-  return { students, createStudent, updateStudent, deleteStudent };
 };
-
-export default useStudents;

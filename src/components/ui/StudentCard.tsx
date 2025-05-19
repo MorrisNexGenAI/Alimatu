@@ -2,9 +2,10 @@ import React from 'react';
 
 type Student = {
   id: number;
-  name: string;
-  age: number;
-  grade: string;
+  first_name:string;
+  last_name:string;
+  gender:string;
+  dob:string;
 };
 
 type Props = {
@@ -16,9 +17,10 @@ const StudentCard: React.FC<Props> = ({ student, onDelete }) => {
   return (
     <div className="p-4 border rounded shadow flex justify-between items-center">
       <div>
-        <h3 className="font-bold text-lg">{student.name}</h3>
-        <p>Age: {student.age}</p>
-        <p>Grade: {student.grade}</p>
+        <h3 className="font-bold text-lg">{student.first_name}</h3>
+          <h3 className="font-bold text-lg">{student.last_name}</h3>
+        <p>Gender: {student.gender}</p>
+        <p>Date of Birth: {student.dob}</p>
       </div>
       <button
         onClick={() => onDelete(student.id)}
