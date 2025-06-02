@@ -1,31 +1,41 @@
-
 export interface GradeSheetEntry {
-  student_id: number; // Match backend
-  student_name: string; // Match backend
+  student: number;
+  student_id: number;
+  student_name: string;
+  id: number;
+  enrollment_id: number; // ForeignKey to Enrollment
+  subject_id: number;    // ForeignKey to Subject
+  period_id: number;     // ForeignKey to Period
   score: number | null;
 }
+
 export interface Subject {
   id: number;
-  subject: string; // Backend uses "subject" instead of "name"
+  subject: string;
 }
 
 export interface Period {
   id: number;
-  period: string; // Backend uses "period" (e.g., "1st", "2nd")
+  period: string;
 }
 
 export interface Level {
   id: number;
   name: string;
 }
-
-
 export interface Student {
   id: number;
   firstName: string;
   lastName: string;
   gender: 'M' | 'F' | 'O';
   dob: string;
-  level_id: number; // Updated from level
-  created_at?: string;
+  level_id: number;
+  level:any // Optional for backward compatibility
+  academic_year: { id: number; name: string };
+}
+export interface AcademicYear {
+  id: number;
+  name: string;
+  start_date: string;
+  end_date: string;
 }

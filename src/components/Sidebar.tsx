@@ -24,11 +24,19 @@ const Sidebar: React.FC = () => {
             isActive ? 'block p-2 bg-gray-600 rounded': 'block p-2 hover: bg-gray-600 rounded'}
             >GradeSheets</NavLink>
 </li>
+
+
 <li>
             <NavLink to="/gradeentry" 
             className={({isActive})=>
             isActive ? 'block p-2 bg-gray-600 rounded': 'block p-2 hover: bg-gray-600 rounded'}
             >GradeEntry</NavLink>
+</li>
+<li>
+            <NavLink to="/studentmanagement" 
+            className={({isActive})=>
+            isActive ? 'block p-2 bg-gray-600 rounded': 'block p-2 hover: bg-gray-600 rounded'}
+            >Student Management Page</NavLink>
 </li>
         </ul>
         </nav>
@@ -36,3 +44,4 @@ const Sidebar: React.FC = () => {
   )
 }
 export default Sidebar;
+  

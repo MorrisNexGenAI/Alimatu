@@ -1,12 +1,25 @@
-import { useSelector, useDispatch } from 'react-redux';
-import { fetchGradesheetsByStudent, createGrade } from '../slices/gradesheetSlice';
-import type { RootState, AppDispatch } from '../store/index';
-import type { Gradesheet } from '../types';
+import { useState, useCallback } from 'react';
+import { api } from '../api';
+import type { GradeSheet } from '../api/grade_sheets';
 
 export const useGrades = () => {
-  const dispatch = useDispatch<AppDispatch>();
-  const { data, loading, error } = useSelector((state: RootState) => state.gradesheets);
-  const loadGrades = (studentId: string) => dispatch(fetchGradesheetsByStudent(studentId));
-  const addGrades = (grade: Omit<Gradesheet, 'id'>) => dispatch(createGrade(grade));
-  return { gradesheets: data as Gradesheet[], loading, error, loadGrades, addGrades };
+  const [gradesheets, setGradesheets] = useState<GradeSheet[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadGrades = useCallback(async (levelId: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await api.grade_sheets.getGradesByLevel(Number(levelId));
+      setGradesheets(data);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to load grades';
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  return { gradesheets, loadGrades, loading, error };
 };

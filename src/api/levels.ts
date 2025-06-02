@@ -1,15 +1,8 @@
-import generalApi from './generalApi';
+import axios from 'axios';
+import { BASE_URL } from './config';
 import type { Level } from '../types';
 
 export const getLevels = async (): Promise<Level[]> => {
-  try {
-    const response = await generalApi.get('/levels');
-    return response.data;
-  } catch (error) {
-    if (error instanceof Error) {
-      throw new Error(`Failed to fetch levels: ${error.message}`);
-    } else {
-      throw new Error('Failed to fetch levels: Unknown error');
-    }
-  }
+  const response = await axios.get(`${BASE_URL}/api/levels/`);
+  return response.data;
 };

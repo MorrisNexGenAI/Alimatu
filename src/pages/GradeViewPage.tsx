@@ -1,24 +1,24 @@
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { useGrades } from '../hooks/useGrades';
 import { useSubjects } from '../hooks/useSubjects';
 import { usePeriods } from '../hooks/usePeriods';
-import GradeSheetTable from '../components/GradeSheetTable';
-import toast from 'react-hot-toast';
+import GradeSheetTable from '../components/grade_sheets/GradeSheetTable';
 
 const GradeViewPage: React.FC = () => {
-  const { studentId } = useParams<{ studentId: string }>();
+  const { levelId } = useParams<{ levelId: string }>();
   const { gradesheets, loadGrades, loading: gradesLoading, error: gradesError } = useGrades();
   const { subjects, loadSubjects, loading: subjectsLoading, error: subjectsError } = useSubjects();
   const { periods, loadPeriods, loading: periodsLoading, error: periodsError } = usePeriods();
 
   useEffect(() => {
-    if (studentId) {
-      loadGrades(studentId);
+    if (levelId) {
+      loadGrades(levelId);
     }
     loadSubjects();
     loadPeriods();
-  }, [studentId, loadGrades, loadSubjects, loadPeriods]);
+  }, [levelId, loadGrades, loadSubjects, loadPeriods]);
 
   useEffect(() => {
     if (gradesError) toast.error(gradesError);
@@ -30,7 +30,7 @@ const GradeViewPage: React.FC = () => {
 
   return (
     <div className="p-4">
-      <h2 className="text-xl font-bold mb-4">Student Gradesheet</h2>
+      <h2 className="text-xl font-bold mb-4">Level Grade Sheet</h2>
       <GradeSheetTable gradesheets={gradesheets} subjects={subjects} periods={periods} />
     </div>
   );

@@ -1,16 +1,25 @@
-import  { useDispatch } from "react-redux";
+import { useState, useCallback } from 'react';
+import { api } from '../api';
+import type { Subject } from '../types';
 
-import type { RootState } from "../store/index";
-import type { Subject } from "../types";
-import type { AppDispatch } from "../store/index";
-import { useSelector } from "react-redux";
+export const useSubjects = () => {
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-import { fetchSubjects } from "../slices/subjectsSlice";
+  const loadSubjects = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await api.subjects.getSubjects();
+      setSubjects(data);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to load subjects';
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-export const useSubjects = () =>{
-  const dispatch = useDispatch<AppDispatch>();
-  const {data, loading, error } = useSelector((state: RootState)=>state.subjects);
-  const loadSubjects = () => dispatch(fetchSubjects());
-  return {subjects:data as Subject[], loading, error, loadSubjects};
-
-}
+  return { subjects, loadSubjects, loading, error };
+};

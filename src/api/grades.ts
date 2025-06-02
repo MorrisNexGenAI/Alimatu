@@ -19,3 +19,11 @@ export const getGradesByPeriodSubject = async (
     }
   }
 };
+
+export function addGrade(gradeData: { student_id: number; subject_id: number; period_id: number; score: number | null; }[]) {
+  throw new Error('Function not implemented.');
+}
+export function updateGrade(arg0: number, arg1: { score: number | null; }) {
+  throw new Error('Function not implemented.');
+}
+

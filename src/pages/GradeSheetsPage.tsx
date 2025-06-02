@@ -1,29 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useRefresh } from '../context/RefreshContext';
-import { getLevels, getStudentsByLevel, getGradesByLevel } from '../api/api';
-
-interface Level { id: number; name: string; }
-interface Student { id: number; firstName: string; lastName: string; }
-interface GradeSheet {
-  student_id: number;
-  student_name: string;
-  subjects: {
-    subject_id: number;
-    subject_name: string;
-    '1st': number | null;
-    '2nd': number | null;
-    '3rd': number | null;
-    '1exam': number | null;
-    '4th': number | null;
-    '5th': number | null;
-    '6th': number | null;
-    '2exam': number | null;
-    sem1_avg: number | null;
-    sem2_avg: number | null;
-    final_avg: number | null;
-  }[];
-}
+import { api } from '../api';
+import type { Level, Student } from '../types';
+import type { GradeSheet } from '../api/grade_sheets';
+import Select from '../components/common/Select';
 
 const GradeSheetsPage: React.FC = () => {
   const { refresh, setRefresh } = useRefresh();
@@ -34,27 +15,13 @@ const GradeSheetsPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
-  // Define the fixed 9 subjects in order
-  const fixedSubjects = [
-    "Mathematics",
-    "English",
-    "Science",
-    "Civics",
-    "History",
-    "Geography",
-    "RME",
-    "Vocabulary",
-    "Agriculture"
-  ];
-
   useEffect(() => {
     const fetchInitialData = async () => {
       setLoading(true);
       setErrors({});
       try {
-        const levelData = await getLevels();
+        const levelData = await api.levels.getLevels();
         setLevels(levelData);
-        console.log('Levels:', levelData);
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Failed to load levels';
         toast.error(message);
@@ -77,21 +44,11 @@ const GradeSheetsPage: React.FC = () => {
       setLoading(true);
       try {
         const [studentData, gradesData] = await Promise.all([
-          getStudentsByLevel(selectedLevelId),
-          getGradesByLevel(selectedLevelId),
+          api.students.getStudentsByLevel(selectedLevelId),
+          api.grade_sheets.getGradesByLevel(selectedLevelId),
         ]);
         setStudents(studentData);
-
-        const mappedGradeSheets = gradesData.map((gradeSheet: any) => ({
-          ...gradeSheet,
-          student_name: studentData.find((s) => s.id === gradeSheet.student_id)
-            ? `${studentData.find((s) => s.id === gradeSheet.student_id)!.firstName} ${studentData.find((s) => s.id === gradeSheet.student_id)!.lastName}`
-            : 'Unknown Student',
-        }));
-
-        setGradeSheets(mappedGradeSheets);
-        console.log('Students:', studentData);
-        console.log('Grade Sheets:', mappedGradeSheets);
+        setGradeSheets(gradesData);
         setErrors((prev) => ({ ...prev, students: '', grades: '' }));
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Failed to load level data';
@@ -107,7 +64,7 @@ const GradeSheetsPage: React.FC = () => {
   const handleLevelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const levelId = Number(e.target.value) || null;
     setSelectedLevelId(levelId);
-    setRefresh(prev => prev + 1); // Trigger refresh on level change
+    setRefresh((prev) => prev + 1);
   };
 
   if (loading && !selectedLevelId) return <p className="text-center">Loading data...</p>;
@@ -116,23 +73,20 @@ const GradeSheetsPage: React.FC = () => {
     <div className="p-4">
       <h2 className="text-xl font-bold mb-4">Grade Sheet Overview</h2>
 
-      <div className="mb-4">
-        <label className="block text-sm font-medium">Level</label>
-        <select
-          value={selectedLevelId ?? ''}
-          onChange={handleLevelChange}
-          className="mt-1 block w-full border rounded p-2"
-          disabled={loading}
-        >
-          <option value="">Select Level</option>
-          {levels.map((level) => (
-            <option key={level.id} value={level.id}>
-              {level.name}
-            </option>
-          ))}
-        </select>
-        {errors.levels && <p className="text-red-600 text-sm mt-1">{errors.levels}</p>}
-      </div>
+      <Select
+        label="Level"
+        value={selectedLevelId?.toString() || ''}
+        onChange={handleLevelChange}
+        options={[
+          { value: '', label: 'Select Level' },
+          ...levels.map((level) => ({
+            value: level.id.toString(),
+            label: level.name,
+          })),
+        ]}
+        disabled={loading}
+        error={errors.levels}
+      />
 
       {selectedLevelId && !loading && (
         <div>
@@ -164,47 +118,29 @@ const GradeSheetsPage: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {fixedSubjects.map((subjectName) => {
-                        const subjectData = gradeSheet.subjects.find((s) => s.subject_name === subjectName) || {
-                          subject_name: subjectName,
-                          '1st': null,
-                          '2nd': null,
-                          '3rd': null,
-                          '1exam': null,
-                          '4th': null,
-                          '5th': null,
-                          '6th': null,
-                          '2exam': null,
-                          sem1_avg: null,
-                          sem2_avg: null,
-                          final_avg: null,
-                        };
-                        return (
-                          <tr key={subjectName} className="border">
-                            <td className="p-2">{subjectData.subject_name}</td>
-                            <td className="p-2 text-center">{subjectData['1st'] !== null ? subjectData['1st'] : '-'}</td>
-                            <td className="p-2 text-center">{subjectData['2nd'] !== null ? subjectData['2nd'] : '-'}</td>
-                            <td className="p-2 text-center">{subjectData['3rd'] !== null ? subjectData['3rd'] : '-'}</td>
-                            <td className="p-2 text-center">{subjectData['1exam'] !== null ? subjectData['1exam'] : '-'}</td>
-                            <td className="p-2 text-center">{subjectData.sem1_avg !== null ? subjectData.sem1_avg : '-'}</td>
-                            <td className="p-2 text-center">{subjectData['4th'] !== null ? subjectData['4th'] : '-'}</td>
-                            <td className="p-2 text-center">{subjectData['5th'] !== null ? subjectData['5th'] : '-'}</td>
-                            <td className="p-2 text-center">{subjectData['6th'] !== null ? subjectData['6th'] : '-'}</td>
-                            <td className="p-2 text-center">{subjectData['2exam'] !== null ? subjectData['2exam'] : '-'}</td>
-                            <td className="p-2 text-center">{subjectData.sem2_avg !== null ? subjectData.sem2_avg : '-'}</td>
-                            <td className="p-2 text-center">{subjectData.final_avg !== null ? subjectData.final_avg : '-'}</td>
-                          </tr>
-                        );
-                      })}
+                      {gradeSheet.subjects.map((subjectData) => (
+                        <tr key={subjectData.subject_id} className="border">
+                          <td className="p-2">{subjectData.subject_name}</td>
+                          <td className="p-2 text-center">{subjectData['1st'] ?? '-'}</td>
+                          <td className="p-2 text-center">{subjectData['2nd'] ?? '-'}</td>
+                          <td className="p-2 text-center">{subjectData['3rd'] ?? '-'}</td>
+                          <td className="p-2 text-center">{subjectData['1exam'] ?? '-'}</td>
+                          <td className="p-2 text-center">{subjectData.sem1_avg ?? '-'}</td>
+                          <td className="p-2 text-center">{subjectData['4th'] ?? '-'}</td>
+                          <td className="p-2 text-center">{subjectData['5th'] ?? '-'}</td>
+                          <td className="p-2 text-center">{subjectData['6th'] ?? '-'}</td>
+                          <td className="p-2 text-center">{subjectData['2exam'] ?? '-'}</td>
+                          <td className="p-2 text-center">{subjectData.sem2_avg ?? '-'}</td>
+                          <td className="p-2 text-center">{subjectData.final_avg ?? '-'}</td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>
               );
             })
           ) : (
-            <p className="text-center">
-              {errors.students || errors.grades || 'No students found for this level'}
-            </p>
+            <p className="text-center">{errors.students || errors.grades || 'No students found for this level'}</p>
           )}
         </div>
       )}
