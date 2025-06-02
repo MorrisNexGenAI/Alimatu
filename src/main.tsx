@@ -2,10 +2,10 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
 import { BrowserRouter } from 'react-router-dom'
-import { Provider } from 'react-redux'              // ⬅️ Import Provider
+            // ⬅️ Import Provider
 // Update the path below if your store file is in a different location or filename
-import { store } from './store'              // ⬅️ Import your Redux store
-import './index.css'
+          // ⬅️ Import your Redux store
+import './styles/index.css'
 import { registerSW } from 'virtual:pwa-register'
 
 const updateSW = registerSW({
@@ -21,10 +21,10 @@ const updateSW = registerSW({
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <Provider store={store}>                       {/* ✅ Wrap Provider at the top */}
+                       {/* ✅ Wrap Provider at the top */}
       <BrowserRouter>
         <App />
       </BrowserRouter>
-    </Provider>
+    
   </React.StrictMode>
 )

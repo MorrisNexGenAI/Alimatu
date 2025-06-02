@@ -1,17 +1,19 @@
 // src/routes/AppRoutes.tsx
 import { Routes, Route } from 'react-router-dom';
-import DashboardShell from '../components/layout/DashboardShell';
-import Dashboard from '../features/dashboard/Dashboard';
-import StudentsPage from '../features/students/StudentsPage';
-import EnrollmentsPage from '../features/enrollments/EnrollmentsPage';
+import DashboardShell from '../components/DashboardShell';
+import DashboardPage from '../pages/DashboardPage';
+import StudentsPage from '../pages/StudentsPage';
+import GradeSheetsPage from '../pages/GradeSheetsPage';
+import GradeEntryPage from '../pages/GradeEntryPage';
 
-const AppRoutes = () => {
+const AppRoutes: React.FC = () => {
   return (
     <Routes>
       <Route path="/" element={<DashboardShell />}>
-        <Route index element={<Dashboard />} />
+        <Route index element={<DashboardPage />} />
         <Route path="students" element={<StudentsPage />} />
-        <Route path="enrollments" element={<EnrollmentsPage />} />
+        <Route path="gradesheets" element={<GradeSheetsPage />} />
+        <Route path="gradeentry" element={<GradeEntryPage />} />
       </Route>
     </Routes>
   );

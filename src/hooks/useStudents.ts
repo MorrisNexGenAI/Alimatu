@@ -1,25 +1,12 @@
-// hooks/useStudents.ts
-
-import { useAppDispatch, useAppSelector } from '../store/hooks'; // ✅ Correct
-// Update the path if your hooks file is in 'src/hooks/index.ts' or adjust to the correct relative path
-import {
-  fetchStudents,
-  addStudent,
-  updateStudent,
-  deleteStudent,
-} from '../features/students/studentSlice';
+import { useSelector, useDispatch,  } from 'react-redux';
+import { fetchStudentsByLevel, addStudents } from '../slices/studentsSlice';
+import type { RootState, AppDispatch } from '../store/index';
+import type { Student } from '../types';
 
 export const useStudents = () => {
-  const dispatch = useAppDispatch();
-  const { students, loading, error } = useAppSelector((state: any) => state.students);
-
-  return {
-    students,
-    loading,
-    error,
-    fetchStudents: () => dispatch(fetchStudents()),
-    addStudent: (data: any) => dispatch(addStudent(data)),
-    updateStudent: (data: any) => dispatch(updateStudent(data)),
-    deleteStudent: (id: number) => dispatch(deleteStudent(id)),
-  };
+  const dispatch = useDispatch<AppDispatch>();
+  const { data, loading, error } = useSelector((state: RootState) => state.students);
+  const loadStudents = (levelId: string) => dispatch(fetchStudentsByLevel(levelId));
+  const createStudent = (student: Omit<Student, 'id'>) => dispatch(addStudents(student));
+  return { students: data as Student[], loading, error, loadStudents, createStudent };
 };
