@@ -1,0 +1,72 @@
+/* C:\Users\USER\Desktop\GradeSheet\SchoolGradesSystem\src\components\layout\sidebar.css */
+:root {
+  --primary-color: #FFFFFF; /* White */
+  --secondary-color: #008000; /* Green */
+  --gradient-start: #00A000; /* Darker Green for gradient */
+  --shadow-color: rgba(0, 0, 0, 0.1);
+}
+
+aside {
+  background-color: var(--primary-color);
+  border-right: 2px solid var(--secondary-color);
+  width: 16rem; /* Matches w-64 */
+  padding: 1.5rem 0; /* Increased padding for a modern feel */
+  transition: all 0.3s ease; /* Smooth transition for any future animations */
+}
+
+nav ul {
+  list-style: none;
+  padding: 0 0.75rem;
+  margin: 0;
+}
+
+nav ul li {
+  margin-bottom: 0.75rem; /* Increased spacing */
+}
+
+nav a {
+  color: var(--secondary-color);
+  text-decoration: none;
+  display: flex;
+  align-items: center; /* Center icon and text vertically */
+  padding: 0.875rem 1.25rem; /* Adjusted padding for a sleeker card */
+  background: linear-gradient(145deg, var(--primary-color), #F9F9F9); /* Subtle gradient */
+  border: 1px solid var(--secondary-color);
+  border-radius: 10px; /* Slightly larger radius for a modern look */
+  box-shadow: 0 4px 6px var(--shadow-color); /* Enhanced shadow */
+  font-weight: 500;
+  transition: all 0.3s ease; /* Smooth transitions */
+}
+
+nav a:hover {
+  background: linear-gradient(145deg, var(--gradient-start), var(--secondary-color)); /* Gradient on hover */
+  color: var(--primary-color);
+  transform: translateY(-3px); /* More pronounced lift */
+  box-shadow: 0 6px 12px var(--shadow-color); /* Stronger shadow on hover */
+}
+
+nav a.active {
+  background: var(--secondary-color); /* Solid Green for active */
+  color: var(--primary-color);
+  font-weight: 600; /* Slightly bolder */
+  box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.15); /* Deeper inset shadow */
+}
+
+/* Override inline styles from Sidebar.tsx */
+nav a.block {
+  background: none; /* Reset any inline background */
+}
+
+nav a.block:hover,
+nav a.block.active {
+  background: var(--secondary-color); /* Use Green for hover/active */
+  color: var(--primary-color);
+}
+
+nav a svg {
+  width: 1rem; /* Explicitly set to 1rem to match h-4 w-4 */
+  height: 1rem; /* Explicitly set to 1rem */
+  margin-right: 0.75rem; /* Increased space between icon and text */
+  vertical-align: middle; /* Ensure proper vertical alignment */
+  fill: currentColor; /* Use the parent's color (Green by default) */
+}

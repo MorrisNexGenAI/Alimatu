@@ -1,3 +1,4 @@
+// C:\Users\USER\Desktop\GradeSheet\SchoolGradesSystem\src\pages\StudentPage.tsx
 import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { api } from '../api';
@@ -5,6 +6,8 @@ import type { Level, Student } from '../types';
 import Select from '../components/common/Select';
 import StudentForm from '../components/students/StudentForm';
 import StudentList from '../components/students/StudentList';
+import BomiTheme from '../templates/Bomi junior High/bomi';
+import './b_students.css'; // Import the new CSS file
 
 const StudentPage: React.FC = () => {
   const [levels, setLevels] = useState<Level[]>([]);
@@ -59,34 +62,36 @@ const StudentPage: React.FC = () => {
   };
 
   return (
-    <div className="p-4">
-      <h2 className="text-xl font-bold mb-4">Add Students</h2>
+    <BomiTheme>
+      <div className="b-student-page p-4">
+        <h2 className="b-student-heading">Add Students</h2>
 
-      <Select
-        label="Level"
-        value={selectedLevelId?.toString() || ''}
-        onChange={(e) => setSelectedLevelId(Number(e.target.value) || null)}
-        options={[
-          { value: '', label: 'Select Level' },
-          ...levels.map((level) => ({
-            value: level.id.toString(),
-            label: level.name,
-          })),
-        ]}
-        disabled={loading}
-        error={errors.levels}
-      />
+        <Select
+          label="Level"
+          value={selectedLevelId?.toString() || ''}
+          onChange={(e) => setSelectedLevelId(Number(e.target.value) || null)}
+          options={[
+            { value: '', label: 'Select Level' },
+            ...levels.map((level) => ({
+              value: level.id.toString(),
+              label: level.name,
+            })),
+          ]}
+          disabled={loading}
+          error={errors.levels}
+        />
 
-      {selectedLevelId && (
-        <>
-          <StudentForm levelId={selectedLevelId} onStudentAdded={handleStudentAdded} />
-          <StudentList students={students} error={errors.students} />
-        </>
-      )}
+        {selectedLevelId && (
+          <>
+            <StudentForm levelId={selectedLevelId} onStudentAdded={handleStudentAdded} />
+            <StudentList students={students} error={errors.students} />
+          </>
+        )}
 
-      {loading && selectedLevelId && <p className="text-center">Loading students...</p>}
-      {!selectedLevelId && <p className="text-center">Please select a level</p>}
-    </div>
+        {loading && selectedLevelId && <p className="b-student-message">Loading students...</p>}
+        {!selectedLevelId && <p className="b-student-message">Please select a level</p>}
+      </div>
+    </BomiTheme>
   );
 };
 

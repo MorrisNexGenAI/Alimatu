@@ -244,7 +244,7 @@ const StudentManagementPage: React.FC = () => {
           <div className="mb-4">
             <label className="block">Level</label>
             <select
-              value={selectedStudent.level_id.toString()}
+              value={selectedStudent.level_id}
               onChange={(e) => setSelectedStudent({ ...selectedStudent, level_id: parseInt(e.target.value) })}
               className="border p-1 w-full"
             >

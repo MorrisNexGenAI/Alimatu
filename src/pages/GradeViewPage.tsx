@@ -1,3 +1,4 @@
+// C:\Users\USER\Desktop\GradeSheet\SchoolGradesSystem\src\pages\GradeViewPage.tsx
 import React, { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -5,6 +6,8 @@ import { useGrades } from '../hooks/useGrades';
 import { useSubjects } from '../hooks/useSubjects';
 import { usePeriods } from '../hooks/usePeriods';
 import GradeSheetTable from '../components/grade_sheets/GradeSheetTable';
+import BomiTheme from '../templates/Bomi junior High/bomi';
+import './b_gradesheets.css'; // Import the new CSS file
 
 const GradeViewPage: React.FC = () => {
   const { levelId } = useParams<{ levelId: string }>();
@@ -26,13 +29,15 @@ const GradeViewPage: React.FC = () => {
     if (periodsError) toast.error(periodsError);
   }, [gradesError, subjectsError, periodsError]);
 
-  if (gradesLoading || subjectsLoading || periodsLoading) return <p className="text-center">Loading grades...</p>;
+  if (gradesLoading || subjectsLoading || periodsLoading) return <p className="b-gradesheet-message">Loading grades...</p>;
 
   return (
-    <div className="p-4">
-      <h2 className="text-xl font-bold mb-4">Level Grade Sheet</h2>
-      <GradeSheetTable gradesheets={gradesheets} subjects={subjects} periods={periods} />
-    </div>
+    <BomiTheme>
+      <div className="b-gradesheet-page p-4">
+        <h2 className="b-gradesheet-heading">Level Grade Sheet</h2>
+        <GradeSheetTable gradesheets={gradesheets} subjects={subjects} periods={periods} />
+      </div>
+    </BomiTheme>
   );
 };
 
