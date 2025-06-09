@@ -95,14 +95,19 @@ const GradeEntryPage: React.FC = () => {
       toast.error('Please select a subject and period');
       return;
     }
+    if (!selectedLevelId) {
+      toast.error('Level ID is required');
+      return;
+    }
     const gradeData = Object.entries(grades).map(([studentId, score]) => ({
       student_id: parseInt(studentId),
       subject_id: selectedSubjectId,
       period_id: selectedPeriodId,
       score: score || null,
+      level_id: selectedLevelId, // Now guaranteed to be a number
     }));
     try {
-      await api.grades.addGrade(gradeData);
+      await api.grades.addGrade(gradeData,);
       toast.success('Grades submitted successfully');
       setGrades({});
       setRefresh((prev) => (prev === 0 ? 1 : 0));

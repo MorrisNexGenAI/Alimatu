@@ -2,6 +2,7 @@
 import React from 'react';
 import BomiTheme from '../templates/Bomi junior High/bomi';
 
+
 const DashboardPage: React.FC = () => {
   return (
     <BomiTheme>
@@ -22,6 +23,7 @@ const DashboardPage: React.FC = () => {
           </ul>
         </div>
       </div>
+   
     </BomiTheme>
   );
 };
