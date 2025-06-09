@@ -36,6 +36,7 @@ const GradeViewPage: React.FC = () => {
       <div className="b-gradesheet-page p-4">
         <h2 className="b-gradesheet-heading">Level Grade Sheet</h2>
         <GradeSheetTable gradesheets={gradesheets} subjects={subjects} periods={periods} />
+        
       </div>
     </BomiTheme>
   );

@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { BASE_URL } from './config';
-import type { GradeSheetEntry } from '../types';
+import type { GradeSheetEntry, GradeSheet } from '../types';
 
 export interface GradeSheet {
   student_id: number;
@@ -22,7 +22,7 @@ export interface GradeSheet {
   }[];
 }
 
-export const getGradesByLevel = async (levelId: number): Promise<GradeSheet[]> => {
+export const getGradeSheetsByLevel = async (levelId: number): Promise<GradeSheet[]> => {
   const response = await axios.get(`${BASE_URL}/api/grade_sheets/by_level/?level_id=${levelId}`);
   return response.data;
 };

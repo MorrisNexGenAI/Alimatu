@@ -39,3 +39,30 @@ export interface AcademicYear {
   start_date: string;
   end_date: string;
 }
+export interface GradeSheet {
+  student_id: number;
+  student_name: string;
+  subjects: {
+    first_period: string;
+    second_period: string;
+    third_period: string;
+    first_exam: string;
+    fourth_period: string;
+    fifth_period: string;
+    sixth_period: string;
+    second_exam: string;
+    subject_id: number;
+    subject_name: string;
+    '1st'?: number | string;
+    '2nd'?: number | string;
+    '3rd'?: number | string;
+    '1exam'?: number | string;
+    sem1_avg?: number | string;
+    '4th'?: number | string;
+    '5th'?: number | string;
+    '6th'?: number | string;
+    '2exam'?: number | string;
+    sem2_avg?: number | string;
+    final_avg?: number | string;
+  }[];
+}
