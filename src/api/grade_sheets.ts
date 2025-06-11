@@ -2,7 +2,7 @@ import axios from 'axios';
 import { BASE_URL } from './config';
 import type { GradeSheetEntry, GradeSheet } from '../types';
 
-export interface GradeSheet {
+export interface GradeSheets {
   student_id: number;
   student_name: string;
   subjects: {

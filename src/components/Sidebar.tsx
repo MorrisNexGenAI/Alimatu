@@ -98,7 +98,7 @@ const Sidebar: React.FC = () => {
             </li>
             <li>
             <NavLink
-              to="/gradesheettest"
+              to="/reportcard"
               className={({ isActive }) =>
                 isActive ? 'block p-2 rounded' : 'block p-2 hover:rounded'
               }
@@ -107,7 +107,7 @@ const Sidebar: React.FC = () => {
               {({ isActive }) => (
                 <>
                   <HomeIcon className="h-4 w-4 inline-block mr-2" /> {/* Reduced size */}
-                  {isActive ? <span className="font-bold">GradeSheetTest</span> : 'gradesheet test'}
+                  {isActive ? <span className="font-bold">ReportCard</span> : 'report card'}
                 </>
               )}
             </NavLink>

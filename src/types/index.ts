@@ -66,3 +66,20 @@ export interface GradeSheet {
     final_avg?: number | string;
   }[];
 }
+
+export interface Enrollment {
+  id: number;
+  student: Student;
+  level: Level;
+  academic_year: AcademicYear;
+}
+
+export interface PassFailedStatus {
+  id: number;
+  student: Student;
+  level: Level;
+  academic_year: AcademicYear;
+  enrollment: Enrollment;
+  status: 'PASS' | 'FAIL' | 'CONDITIONAL' | 'INCOMPLETE';
+  grades_complete: boolean;
+}

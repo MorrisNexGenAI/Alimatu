@@ -14,3 +14,4 @@ export const api = {
   academic_years,
   grades,
 };
+

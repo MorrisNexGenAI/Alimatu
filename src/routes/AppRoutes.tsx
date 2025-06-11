@@ -6,7 +6,7 @@ import GradeSheetsPage from '../pages/GradeSheetsPage';
 import GradeEntryPage from '../pages/GradeEntryPage';
 import GradeViewPage from '../pages/GradeViewPage';
 import StudentManagementPage from '../pages/StudentManagementPage';
-import GradeSheetTest from '../pages/GradeSheetTest';
+import ReportCard from '../pages/ReportCard';
 
 const AppRoutes: React.FC = () => {
   return (
@@ -18,7 +18,7 @@ const AppRoutes: React.FC = () => {
         <Route path="gradesheets/:levelId" element={<GradeViewPage />} />
         <Route path="gradeentry" element={<GradeEntryPage />} />
         <Route path="studentmanagement" element={<StudentManagementPage />} />
-        <Route path="gradesheettest" element={<GradeSheetTest />} />
+        <Route path="reportcard" element={<ReportCard />} />
       </Route>
     </Routes>
   );
