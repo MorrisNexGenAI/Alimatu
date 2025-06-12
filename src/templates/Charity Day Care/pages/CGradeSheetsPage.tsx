@@ -1,19 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import { useRefresh } from '../context/RefreshContext';
-import { api } from '../api';
-import { BASE_URL } from '../api/config';
-import type { Level, Student, AcademicYear, GradeSheet } from '../types';
-import Select from '../components/common/Select';
-import BomiTheme from '../templates/Bomi junior High/bomi';
-import './b_gradesheets.css';
+import { useRefresh } from '../../../context/RefreshContext';
+import { api } from '../../../api';
+import { BASE_URL } from '../../../api/config';
+import type { Level, Student } from '../../../types';
+import type { GradeSheet } from '../../../types/index';
+import Select from '../../../components/common/Select';
+import CharityTheme from '../charity';
+import '../c_gradesheets.css';
 
-const GradeSheetsPage: React.FC = () => {
+
+const CGradeSheetsPage: React.FC = () => {
   const { refresh, setRefresh } = useRefresh();
   const [levels, setLevels] = useState<Level[]>([]);
-  const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
   const [selectedLevelId, setSelectedLevelId] = useState<number | null>(null);
-  const [selectedAcademicYearId, setSelectedAcademicYearId] = useState<number | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
   const [gradeSheets, setGradeSheets] = useState<GradeSheet[]>([]);
   const [loading, setLoading] = useState(false);
@@ -25,16 +25,10 @@ const GradeSheetsPage: React.FC = () => {
       setLoading(true);
       setErrors({});
       try {
-        const [levelData, academicYearData] = await Promise.all([
-          api.levels.getLevels(),
-          api.academic_years.getAcademicYears(),
-        ]);
+        const levelData = await api.levels.getLevels();
         setLevels(levelData);
-        setAcademicYears(academicYearData);
-        const currentYear = academicYearData.find((year) => year.name === '2025/2026');
-        setSelectedAcademicYearId(currentYear?.id || (academicYearData.length > 0 ? academicYearData[0].id : null));
       } catch (err) {
-        const message = err instanceof Error ? err.message : 'Failed to load initial data';
+        const message = err instanceof Error ? err.message : 'Failed to load levels';
         toast.error(message);
         setErrors((prev) => ({ ...prev, levels: message }));
       } finally {
@@ -45,7 +39,7 @@ const GradeSheetsPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (!selectedLevelId || !selectedAcademicYearId) {
+    if (!selectedLevelId) {
       setStudents([]);
       setGradeSheets([]);
       setPdfUrls({});
@@ -55,16 +49,11 @@ const GradeSheetsPage: React.FC = () => {
     const fetchLevelData = async () => {
       setLoading(true);
       try {
-        const academicYear = academicYears.find((ay) => ay.id === selectedAcademicYearId)?.name;
-        if (!academicYear) throw new Error('Invalid academic year selected');
         const [studentData, gradesData] = await Promise.all([
-          api.students.getStudentsByLevel(selectedLevelId, academicYear),
-          api.grade_sheets.getGradeSheetsByLevel(selectedLevelId, academicYear),
+          api.students.getStudentsByLevel(selectedLevelId),
+          api.grade_sheets.getGradeSheetsByLevel(selectedLevelId),
         ]);
-        const filteredStudents = studentData.filter(
-          (student) => !(student.firstName === 'Test' && student.lastName === 'Student')
-        );
-        setStudents(filteredStudents);
+        setStudents(studentData);
         setGradeSheets(gradesData);
         setErrors((prev) => ({ ...prev, students: '', grades: '' }));
       } catch (err) {
@@ -76,17 +65,11 @@ const GradeSheetsPage: React.FC = () => {
       }
     };
     fetchLevelData();
-  }, [selectedLevelId, selectedAcademicYearId, refresh, academicYears]);
+  }, [selectedLevelId, refresh]);
 
   const handleLevelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const levelId = Number(e.target.value) || null;
     setSelectedLevelId(levelId);
-    setRefresh((prev) => prev + 1);
-  };
-
-  const handleAcademicYearChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const academicYearId = Number(e.target.value) || null;
-    setSelectedAcademicYearId(academicYearId);
     setRefresh((prev) => prev + 1);
   };
 
@@ -96,11 +79,13 @@ const GradeSheetsPage: React.FC = () => {
         ? `${BASE_URL}/api/grade_sheets/gradesheet/pdf/generate?level_id=${encodeURIComponent(levelId)}&student_id=${encodeURIComponent(studentId)}`
         : `${BASE_URL}/api/grade_sheets/gradesheet/pdf/generate?level_id=${encodeURIComponent(levelId)}`;
       const response = await fetch(url, { method: 'GET' });
+      console.log('Generate PDF Response:', response.status, response.headers);
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`Failed to generate PDF: ${response.statusText}, ${errorText}`);
       }
       const data = await response.json();
+      console.log('PDF Response Data:', data);
       const key = studentId ? `student_${studentId}` : `level_${levelId}`;
       setPdfUrls((prev) => ({ ...prev, [key]: data.view_url }));
       toast.success('PDF generated successfully! Click the link to view.');
@@ -110,45 +95,29 @@ const GradeSheetsPage: React.FC = () => {
     }
   };
 
-  if (loading && !selectedLevelId && !selectedAcademicYearId) return <p className="b-gradesheet-message">Loading data...</p>;
+  if (loading && !selectedLevelId) return <p className="b-gradesheet-message">Loading data...</p>;
 
   return (
-    <BomiTheme>
+    <CharityTheme>
       <div className="b-gradesheet-page p-4">
         <h2 className="b-gradesheet-title">Grade Sheet Overview</h2>
 
-        <div className="grid gap-4 sm:grid-cols-2 mb-4">
-          <Select
-            label="Level"
-            value={selectedLevelId?.toString() || ''}
-            onChange={handleLevelChange}
-            options={[
-              { value: '', label: 'Select Level' },
-              ...levels.map((level) => ({
-                value: level.id.toString(),
-                label: level.name,
-              })),
-            ]}
-            disabled={loading}
-            error={errors.levels}
-          />
-          <Select
-            label="Academic Year"
-            value={selectedAcademicYearId?.toString() || ''}
-            onChange={handleAcademicYearChange}
-            options={[
-              { value: '', label: 'Select Academic Year' },
-              ...academicYears.map((year) => ({
-                value: year.id.toString(),
-                label: year.name,
-              })),
-            ]}
-            disabled={loading}
-            error={errors.academicYears}
-          />
-        </div>
+        <Select
+          label="Level"
+          value={selectedLevelId?.toString() || ''}
+          onChange={handleLevelChange}
+          options={[
+            { value: '', label: 'Select Level' },
+            ...levels.map((level) => ({
+              value: level.id.toString(),
+              label: level.name,
+            })),
+          ]}
+          disabled={loading}
+          error={errors.levels}
+        />
 
-        {selectedLevelId && selectedAcademicYearId && (
+        {selectedLevelId && (
           <div className="mt-4">
             <button
               className="b-generate-btn p-2 bg-blue-500 text-white rounded"
@@ -172,7 +141,7 @@ const GradeSheetsPage: React.FC = () => {
           </div>
         )}
 
-        {selectedLevelId && selectedAcademicYearId && !loading && (
+        {selectedLevelId && !loading && (
           <div>
             {students.length > 0 ? (
               students.map((student) => {
@@ -243,22 +212,16 @@ const GradeSheetsPage: React.FC = () => {
                 );
               })
             ) : (
-              <p className="b-gradesheet-message">
-                {errors.students || errors.grades || 'No students found for this level and academic year'}
-              </p>
+              <p className="b-gradesheet-message">{errors.students || errors.grades || 'No students found for this level'}</p>
             )}
           </div>
         )}
 
-        {loading && selectedLevelId && selectedAcademicYearId && (
-          <p className="b-gradesheet-message">Loading gradesheets...</p>
-        )}
-        {(!selectedLevelId || !selectedAcademicYearId) && (
-          <p className="b-gradesheet-message">Please select a level and academic year</p>
-        )}
+        {loading && selectedLevelId && <p className="b-gradesheet-message">Loading grades...</p>}
+        {!selectedLevelId && <p className="b-gradesheet-message">Please select a level</p>}
       </div>
-    </BomiTheme>
+    </CharityTheme>
   );
 };
 
-export default GradeSheetsPage;
+export default CGradeSheetsPage;

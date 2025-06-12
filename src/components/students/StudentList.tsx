@@ -33,7 +33,10 @@ const StudentList: React.FC<StudentListProps> = ({ students, error }) => {
               <td className="p-2">{student.gender}</td>
               <td className="p-2">{student.dob}</td>
               <td className="p-2 text-center">{student.level_id}</td>
-              <td className="p-2">{student.academic_year.name}</td>
+              <td className="p-2">
+        {student.academic_year ? student.academic_year.name : 'N/A'}
+      </td>
+            
             </tr>
           ))}
         </tbody>

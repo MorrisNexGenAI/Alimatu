@@ -74,12 +74,23 @@ export interface Enrollment {
   academic_year: AcademicYear;
 }
 
+
 export interface PassFailedStatus {
   id: number;
-  student: Student;
-  level: Level;
-  academic_year: AcademicYear;
-  enrollment: Enrollment;
-  status: 'PASS' | 'FAIL' | 'CONDITIONAL' | 'INCOMPLETE';
+  student: {
+    id: number;
+    firstName: string;
+    lastName: string;
+  };
+  level: {
+    id: number;
+    name: string;
+  };
+  academic_year: {
+    id: number;
+    name: string;
+  };
+  status: 'PASS' | 'FAIL' | 'CONDITIONAL' | 'INCOMPLETE' | 'PENDING';
   grades_complete: boolean;
+  validated_by?: string;
 }

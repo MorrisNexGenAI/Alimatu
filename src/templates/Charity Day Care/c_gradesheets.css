@@ -1,0 +1,223 @@
+/* C:\Users\USER\Desktop\GradeSheet\SchoolGradesSystem\src\pages\b_gradesheets.css */
+:root {
+  --primary-color: #ca8282; /* White */
+  --secondary-color: #857f72; /* Green */
+  --gradient-start: #00A000; /* Darker Green for gradient */
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --text-color: #333333;
+  --error-color: #EF4444; /* Red for errors */
+  --disabled-bg: #E5E7EB; /* Gray for disabled state */
+}
+
+.b-gradesheet-page {
+  max-width: 1200px;
+  margin: 0 auto; /* Center the content */
+  padding: 1.5rem;
+  background-color: #F5F5F5; /* Light gray background */
+  border-radius: 12px;
+  box-shadow: 0 4px 6px var(--shadow-color);
+}
+
+.b-gradesheet-heading {
+  font-size: 1.5rem; /* 24px */
+  font-weight: 700;
+  color: var(--secondary-color);
+  margin-bottom: 1.5rem;
+  position: relative;
+  padding-bottom: 0.5rem;
+}
+
+.b-gradesheet-heading::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 50px;
+  height: 3px;
+  background-color: var(--secondary-color);
+  border-radius: 2px;
+}
+
+.b-student-heading {
+  font-size: 1.25rem; /* 20px */
+  font-weight: 600;
+  color: var(--text-color);
+  margin-bottom: 0.75rem;
+}
+
+/* Style the Select component */
+div:has(> select) {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+label {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+select {
+  background-color: var(--primary-color);
+  border: 1px solid var(--secondary-color);
+  border-radius: 8px;
+  padding: 0.75rem;
+  font-size: 1rem;
+  color: var(--text-color);
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px var(--shadow-color);
+}
+
+select:focus {
+  outline: none;
+  border-color: var(--gradient-start);
+  box-shadow: 0 4px 8px var(--shadow-color);
+}
+
+select:disabled {
+  background-color: var(--disabled-bg);
+  cursor: not-allowed;
+}
+
+/* Error message for Select */
+div:has(> select) + p {
+  color: var(--error-color);
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+/* Style student sections and tables */
+.mb-6 {
+  margin-bottom: 1.5rem; /* Override Tailwind mb-6 */
+}
+
+.b-gradesheet-table-container {
+  background-color: var(--primary-color);
+  border: 1px solid var(--secondary-color);
+  border-radius: 10px;
+  padding: 1rem;
+  box-shadow: 0 4px 6px var(--shadow-color);
+  overflow-x: auto; /* Handle overflow on small screens */
+}
+
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+th {
+  background-color: #E5E7EB; /* Light gray header */
+  color: var(--text-color);
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 2px solid var(--secondary-color);
+  white-space: nowrap; /* Prevent wrapping in headers */
+}
+
+td {
+  padding: 0.75rem;
+  border-bottom: 1px solid #E5E7EB;
+  color: var(--text-color);
+  text-align: left;
+  white-space: nowrap; /* Prevent wrapping in cells */
+}
+
+td.text-center {
+  text-align: center;
+}
+
+tr:hover {
+  background-color: #F1F5F9; /* Light gray on hover */
+}
+
+.b-gradesheet-message {
+  text-align: center;
+  font-size: 1rem;
+  color: var(--text-color);
+  margin-top: 1.5rem;
+  padding: 0.75rem;
+  background-color: var(--primary-color);
+  border-radius: 8px;
+  box-shadow: 0 2px 4px var(--shadow-color);
+}
+
+/* Style the print button */
+.b-print-button {
+  background: linear-gradient(145deg, var(--secondary-color), var(--gradient-start));
+  color: var(--primary-color);
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 1rem;
+  display: inline-block;
+}
+
+.b-print-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px var(--shadow-color);
+}
+
+/* Print styles */
+@media print {
+  .b-gradesheet-page {
+    background-color: #FFFFFF;
+    box-shadow: none;
+    padding: 0;
+  }
+
+  .b-gradesheet-table-container {
+    border: none;
+    box-shadow: none;
+    padding: 0;
+  }
+
+  .b-print-button {
+    display: none; /* Hide print button when printing */
+  }
+
+  th {
+    background-color: #FFFFFF; /* White header for print */
+    border-bottom: 1px solid #000000;
+    color: #000000;
+  }
+
+  td {
+    border-bottom: 1px solid #000000;
+    color: #000000;
+  }
+
+  tr:hover {
+    background-color: #FFFFFF; /* Disable hover effect */
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .b-gradesheet-page {
+    padding: 1rem;
+  }
+
+  .b-gradesheet-heading {
+    font-size: 1.25rem;
+  }
+
+  .b-student-heading {
+    font-size: 1.125rem;
+  }
+
+  th, td {
+    padding: 0.5rem;
+    font-size: 0.875rem;
+  }
+
+  .b-print-button {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+  }
+}

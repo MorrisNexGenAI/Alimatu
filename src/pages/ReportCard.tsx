@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useRefresh } from '../context/RefreshContext';
-import { getStatusesByLevelAndYear, validateStatus, promoteStudent, printReportCard } from '../api/pass_failed_statues';
-import { getLevels } from '../api/levels';
-import { getAcademicYears } from '../api/academic_years';
+import { api } from '../api';
 import type { Level, AcademicYear, PassFailedStatus } from '../types';
 import Select from '../components/common/Select';
 import Modal from '../components/common/Modal';
@@ -27,14 +25,16 @@ const ReportCard: React.FC = () => {
       setLoading(true);
       try {
         const [levelData, yearData] = await Promise.all([
-          getLevels(),
-          getAcademicYears(),
+          api.levels.getLevels(),
+          api.academic_years.getAcademicYears(),
         ]);
         setLevels(levelData);
         setAcademicYears(yearData);
+        const currentYear = yearData.find((year) => year.name === '2025/2026');
+        setSelectedAcademicYearId(currentYear?.id || (yearData.length > 0 ? yearData[0].id : null));
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Failed to load initial data';
-        toast.error(`${message}`);
+        toast.error(message);
         setErrors((prev) => ({ ...prev, initial: message }));
       } finally {
         setLoading(false);
@@ -53,56 +53,62 @@ const ReportCard: React.FC = () => {
     const fetchStatuses = async () => {
       setLoading(true);
       try {
-        const statusData = await getStatusesByLevelAndYear(selectedLevelId, selectedAcademicYearId);
-        setStatuses(statusData);
+        const academicYear = academicYears.find((ay) => ay.id === selectedAcademicYearId)?.name;
+        if (!academicYear) throw new Error('Invalid academic year selected');
+        const statusData = await api.pass_failed_statuses.getStatusesByLevelAndYear(selectedLevelId, academicYear);
+        const filteredStatuses = statusData.filter(
+          (status) => !(status.student.firstName === 'Test' && status.student.lastName === 'Student')
+        );
+        setStatuses(filteredStatuses);
         setErrors((prev) => ({ ...prev, statuses: '' }));
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Failed to load student statuses';
-        toast.error(`${message}`);
+        toast.error(message);
         setErrors((prev) => ({ ...prev, statuses: message }));
       } finally {
         setLoading(false);
       }
     };
     fetchStatuses();
-  }, [selectedLevelId, selectedAcademicYearId, refresh]);
+  }, [selectedLevelId, selectedAcademicYearId, refresh, academicYears]);
 
   const handleLevelChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
     setSelectedLevelId(Number(e.target.value) || null);
-    setRefresh((prev: number) => prev + 1);
+    setRefresh((prev) => prev + 1);
   };
 
   const handleAcademicYearChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
     setSelectedAcademicYearId(Number(e.target.value) || null);
-    setRefresh((prev: number) => prev + 1);
+    setRefresh((prev) => prev + 1);
   };
 
   const handleSetStatus = async (statusId: number, status: 'PASS' | 'FAIL' | 'CONDITIONAL'): Promise<void> => {
     try {
-      await validateStatus(statusId, status, 'admin');
+      await api.pass_failed_statuses.validateStatus(statusId, status, 'admin');
       toast.success(`Student marked as ${status.toLowerCase()}`);
-      setRefresh((prev: number) => prev + 1);
+      setRefresh((prev) => prev + 1);
       setModal({ show: false });
     } catch (err) {
       toast.error(`Failed to set status: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
   };
 
-  const handlePromote = async (statusId: number): Promise<void> => {
-    try {
-      await promoteStudent(statusId);
-      toast.success('Student promoted to next level');
-      setRefresh((prev: number) => prev + 1);
-      setModal({ show: false });
-    } catch (err) {
-      toast.error(`Failed to promote: ${err instanceof Error ? err.message : 'Unknown error'}`);
-    }
-  };
 
-  const handleGeneratePDF = async (statusId?: number): Promise<void> => {
+  const handleGeneratePDF = async (studentId?: number): Promise<void> => {
+    if (!selectedLevelId || !selectedAcademicYearId) {
+      toast.error('Please select a level and academic year');
+      return;
+    }
     try {
-      const response = await printReportCard(selectedLevelId!, selectedAcademicYearId!, statusId ? statuses.find(s => s.id === statusId)?.student.id : undefined);
-      const key = statusId ? `status_${statusId}` : `level_${selectedLevelId}`;
+      const academicYear = academicYears.find((ay) => ay.id === selectedAcademicYearId)?.name;
+      if (!academicYear) throw new Error('Invalid academic year selected');
+      const response = await api.grade_sheets.printReportCard(
+        selectedLevelId,
+        academicYear,
+        studentId,
+        'yearly'
+      );
+      const key = studentId ? `student_${studentId}` : `level_${selectedLevelId}`;
       setPdfUrls((prev) => ({ ...prev, [key]: response.view_url }));
       toast.success('PDF generated successfully! Click the link to view.');
     } catch (err) {
@@ -122,7 +128,7 @@ const ReportCard: React.FC = () => {
     (s) => s.grades_complete && s.status !== 'INCOMPLETE'
   );
 
-  if (loading && !selectedLevelId) {
+  if (loading && !selectedLevelId && !selectedAcademicYearId) {
     return <p className="b-gradesheet-message">Loading data...</p>;
   }
 
@@ -131,7 +137,7 @@ const ReportCard: React.FC = () => {
       <div className="b-gradesheet-page p-4">
         <h2 className="b-gradesheet-title">Yearly Report Card Management</h2>
 
-        <div className="flex space-x-4 mb-4">
+        <div className="grid gap-4 sm:grid-cols-2 mb-4">
           <Select
             label="Level"
             value={selectedLevelId?.toString() || ''}
@@ -215,7 +221,7 @@ const ReportCard: React.FC = () => {
                           onClick={() => openModal(status.id, 'FAIL')}
                           disabled={loading || !status.grades_complete}
                         >
-                          Failed
+                          Fail
                         </button>
                         <button
                           className="p-1 bg-yellow-500 text-white rounded text-sm"
@@ -244,7 +250,7 @@ const ReportCard: React.FC = () => {
                 </tbody>
               </table>
             ) : (
-              <p className="b-gradesheet-message">{errors.statuses || 'No students found for this level and year'}</p>
+              <p className="b-text-message">{errors.statuses || 'No students found for this level and academic year'}</p>
             )}
           </div>
         )}
@@ -269,29 +275,16 @@ const ReportCard: React.FC = () => {
               <button className="p-2 bg-gray-300 rounded" onClick={closeModal}>
                 Cancel
               </button>
-              <button
-                className="p-2 bg-blue-500 text-white rounded"
-                onClick={() => {
-                  if (modal.action === 'print') {
-                    handleGeneratePDF(modal.statusId);
-                  } else if (modal.action === 'promote') {
-                    handlePromote(modal.statusId!);
-                  } else if (modal.action === 'print_level') {
-                    handleGeneratePDF();
-                  } else {
-                    handleSetStatus(modal.statusId!, modal.action as 'PASS' | 'FAIL' | 'CONDITIONAL');
-                  }
-                }}
-              >
-                Confirm
-              </button>
+      
             </div>
           </Modal>
         )}
 
-        {loading && selectedLevelId && <p className="b-gradesheet-message">Loading students...</p>}
+        {loading && selectedLevelId && selectedAcademicYearId && (
+          <p className="b-text-message">Loading students...</p>
+        )}
         {(!selectedLevelId || !selectedAcademicYearId) && (
-          <p className="b-gradesheet-message">Please select a level and academic year</p>
+          <p className="b-text-message">Please select a level and academic year</p>
         )}
       </div>
     </BomiTheme>
