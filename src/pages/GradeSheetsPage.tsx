@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useRefresh } from '../context/RefreshContext';
@@ -17,6 +18,7 @@ const GradeSheetsPage: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [gradeSheets, setGradeSheets] = useState<GradeSheet[]>([]);
   const [loading, setLoading] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState<{ [key: string]: boolean }>({});
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [pdfUrls, setPdfUrls] = useState<{ [key: string]: string }>({});
 
@@ -91,22 +93,35 @@ const GradeSheetsPage: React.FC = () => {
   };
 
   const handleGeneratePDF = async (levelId: number, studentId?: number) => {
+    const key = studentId ? `student_${studentId}` : `level_${levelId}`;
+    setPdfLoading((prev) => ({ ...prev, [key]: true }));
     try {
+      const academicYear = academicYears.find((ay) => ay.id === selectedAcademicYearId)?.name;
+      if (!academicYear) throw new Error('Invalid academic year selected');
+
       const url = studentId
-        ? `${BASE_URL}/api/grade_sheets/gradesheet/pdf/generate?level_id=${encodeURIComponent(levelId)}&student_id=${encodeURIComponent(studentId)}`
-        : `${BASE_URL}/api/grade_sheets/gradesheet/pdf/generate?level_id=${encodeURIComponent(levelId)}`;
+        ? `${BASE_URL}/api/grade_sheets/gradesheet/pdf/generate/?level_id=${encodeURIComponent(levelId)}&student_id=${encodeURIComponent(studentId)}&academic_year=${encodeURIComponent(academicYear)}`
+        : `${BASE_URL}/api/grade_sheets/gradesheet/pdf/generate/?level_id=${encodeURIComponent(levelId)}&academic_year=${encodeURIComponent(academicYear)}`;
+
       const response = await fetch(url, { method: 'GET' });
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Failed to generate PDF: ${response.statusText}, ${errorText}`);
+        const errorData = await response.json();
+        throw new Error(`Failed to generate PDF: ${errorData.error || response.statusText}`);
       }
       const data = await response.json();
-      const key = studentId ? `student_${studentId}` : `level_${levelId}`;
-      setPdfUrls((prev) => ({ ...prev, [key]: data.view_url }));
-      toast.success('PDF generated successfully! Click the link to view.');
+      const pdfUrl = data.view_url;
+      if (!pdfUrl) throw new Error('No PDF URL returned from server');
+
+      // Ensure full URL if relative
+      const fullPdfUrl = pdfUrl.startsWith('http') ? pdfUrl : `${BASE_URL}${pdfUrl}`;
+      setPdfUrls((prev) => ({ ...prev, [key]: fullPdfUrl }));
+      window.open(fullPdfUrl, '_blank');
+      toast.success('PDF generated and opened!');
     } catch (err) {
       console.error('PDF generation error:', err);
       toast.error(`Failed to generate PDF: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    } finally {
+      setPdfLoading((prev) => ({ ...prev, [key]: false }));
     }
   };
 
@@ -151,11 +166,18 @@ const GradeSheetsPage: React.FC = () => {
         {selectedLevelId && selectedAcademicYearId && (
           <div className="mt-4">
             <button
-              className="b-generate-btn p-2 bg-blue-500 text-white rounded"
+              className="b-generate-btn p-2 bg-blue-500 text-white rounded flex items-center"
               onClick={() => handleGeneratePDF(selectedLevelId)}
-              disabled={loading}
+              disabled={loading || pdfLoading[`level_${selectedLevelId}`]}
             >
-              Generate PDF for Level
+              {pdfLoading[`level_${selectedLevelId}`] ? (
+                <>
+                  <span className="animate-spin mr-2">⌀</span>
+                  Generating...
+                </>
+              ) : (
+                'Generate PDF for Level'
+              )}
             </button>
             {pdfUrls[`level_${selectedLevelId}`] && (
               <p className="mt-2">
@@ -185,11 +207,18 @@ const GradeSheetsPage: React.FC = () => {
                   <div key={student.id} className="mb-6">
                     <h3 className="b-student-title">{gradeSheet.student_name}'s Grade Sheet</h3>
                     <button
-                      className="b-generate-btn p-2 bg-gray-500 text-white rounded"
+                      className="b-generate-btn p-2 bg-gray-500 text-white rounded flex items-center"
                       onClick={() => handleGeneratePDF(selectedLevelId, student.id)}
-                      disabled={loading}
+                      disabled={loading || pdfLoading[`student_${student.id}`]}
                     >
-                      Generate PDF for {student.firstName} {student.lastName}
+                      {pdfLoading[`student_${student.id}`] ? (
+                        <>
+                          <span className="animate-spin mr-2">⌀</span>
+                          Generating...
+                        </>
+                      ) : (
+                        `Generate PDF for ${student.firstName} ${student.lastName}`
+                      )}
                     </button>
                     {pdfUrls[`student_${student.id}`] && (
                       <p className="mt-2">

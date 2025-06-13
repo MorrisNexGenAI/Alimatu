@@ -5,6 +5,7 @@ import { api } from '../api';
 import { Level, Subject, Period, Student, GradeSheetEntry, AcademicYear } from '../types';
 import Select from '../components/common/Select';
 import BomiTheme from '../templates/Bomi junior High/bomi';
+import StudentGradeEntryModal from '../components/StudentGradeEntryModal';
 import './b_gradeentry.css';
 
 const GradeEntryPage: React.FC = () => {
@@ -21,6 +22,7 @@ const GradeEntryPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [grades, setGrades] = useState<Record<number, number | null>>({});
   const [existingGrades, setExistingGrades] = useState<GradeSheetEntry[]>([]);
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -100,6 +102,14 @@ const GradeEntryPage: React.FC = () => {
   const handleGradeChange = (studentId: number, value: string) => {
     const score = value === '' ? null : parseFloat(value);
     setGrades((prev) => ({ ...prev, [studentId]: score }));
+  };
+
+  const handleStudentClick = (student: Student) => {
+    setSelectedStudent(student);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedStudent(null);
   };
 
   const handleSubmit = async () => {
@@ -301,7 +311,14 @@ const GradeEntryPage: React.FC = () => {
                 <tbody>
                   {students.map((student) => (
                     <tr key={student.id} className="border">
-                      <td className="border p-2">{`${student.firstName} ${student.lastName}`}</td>
+                      <td className="border p-2">
+                        <span
+                          className="b-student-name cursor-pointer text-blue-600 hover:underline"
+                          onClick={() => handleStudentClick(student)}
+                        >
+                          {`${student.firstName} ${student.lastName}`}
+                        </span>
+                      </td>
                       <td className="border p-2">
                         <input
                           type="number"
@@ -357,6 +374,17 @@ const GradeEntryPage: React.FC = () => {
               {loading ? 'Loading students...' : 'No students available for this level and academic year.'}
             </p>
           )
+        )}
+
+        {selectedStudent && (
+          <StudentGradeEntryModal
+            student={selectedStudent}
+            subjects={subjects}
+            periods={periods}
+            academicYear={academicYears.find((ay) => ay.id === selectedAcademicYearId) || null}
+            levelId={selectedLevelId}
+            onClose={handleCloseModal}
+          />
         )}
       </div>
     </BomiTheme>

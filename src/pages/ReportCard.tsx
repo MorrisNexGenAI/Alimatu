@@ -32,9 +32,9 @@ const ReportCard: React.FC = () => {
         setAcademicYears(yearData);
         const currentYear = yearData.find((year) => year.name === '2025/2026');
         setSelectedAcademicYearId(currentYear?.id || (yearData.length > 0 ? yearData[0].id : null));
-      } catch (err) {
-        const message = err instanceof Error ? err.message : 'Failed to load initial data';
-        toast.error(message);
+      } catch (err: any) {
+        const message = err.response?.data?.error || (err instanceof Error ? err.message : 'Unknown error');
+        toast.error(`Failed to load initial data: ${message}`);
         setErrors((prev) => ({ ...prev, initial: message }));
       } finally {
         setLoading(false);
@@ -61,9 +61,9 @@ const ReportCard: React.FC = () => {
         );
         setStatuses(filteredStatuses);
         setErrors((prev) => ({ ...prev, statuses: '' }));
-      } catch (err) {
-        const message = err instanceof Error ? err.message : 'Failed to load student statuses';
-        toast.error(message);
+      } catch (err: any) {
+        const message = err.response?.data?.error || (err instanceof Error ? err.message : 'Unknown error');
+        toast.error(`Failed to load statuses: ${message}`);
         setErrors((prev) => ({ ...prev, statuses: message }));
       } finally {
         setLoading(false);
@@ -87,12 +87,11 @@ const ReportCard: React.FC = () => {
       await api.pass_failed_statuses.validateStatus(statusId, status, 'admin');
       toast.success(`Student marked as ${status.toLowerCase()}`);
       setRefresh((prev) => prev + 1);
-      setModal({ show: false });
-    } catch (err) {
-      toast.error(`Failed to set status: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    } catch (err: any) {
+      const message = err.response?.data?.error || (err instanceof Error ? err.message : 'Unknown error');
+      toast.error(`Failed to set status: ${message}`);
     }
   };
-
 
   const handleGeneratePDF = async (studentId?: number): Promise<void> => {
     if (!selectedLevelId || !selectedAcademicYearId) {
@@ -107,12 +106,54 @@ const ReportCard: React.FC = () => {
         academicYear,
         studentId,
         'yearly'
-      );
-      const key = studentId ? `student_${studentId}` : `level_${selectedLevelId}`;
-      setPdfUrls((prev) => ({ ...prev, [key]: response.view_url }));
-      toast.success('PDF generated successfully! Click the link to view.');
-    } catch (err) {
-      toast.error(`Failed to generate PDF: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      ) as { view_url?: string } | undefined;
+      if (response && typeof response === 'object' && 'view_url' in response && response.view_url) {
+        const key = studentId ? `student_${studentId}` : `level_${selectedLevelId}`;
+        setPdfUrls((prev) => ({ ...prev, [key]: response.view_url! }));
+        toast.success('Report card generated successfully! Click the link to view.');
+      } else {
+        throw new Error('Invalid response from server: missing view_url');
+      }
+    } catch (err: any) {
+      const message = err.response?.data?.error || (err instanceof Error ? err.message : 'Unknown error');
+      toast.error(`Failed to generate report card: ${message}`);
+      console.error('PDF generation error:', err);
+    }
+  };
+
+  const handlePromoteStudent = async (statusId: number): Promise<void> => {
+    try {
+      const status = statuses.find((s) => s.id === statusId);
+      if (!status) throw new Error('Status not found');
+      if (!selectedLevelId) throw new Error('No level selected');
+      await api.pass_failed_statuses.promoteStudent(statusId, selectedLevelId, 'admin');
+      toast.success(`Student ${status.student.firstName} ${status.student.lastName} promoted successfully`);
+      setRefresh((prev) => prev + 1);
+    } catch (err: any) {
+      const message = err.response?.data?.error || (err instanceof Error ? err.message : 'Unknown error');
+      toast.error(`Failed to promote student: ${message}`);
+      console.error('Promotion error:', err);
+    }
+  };
+
+  const handleConfirmModal = async (): Promise<void> => {
+    if (!modal.action) return;
+
+    try {
+      if (['PASS', 'FAIL', 'CONDITIONAL'].includes(modal.action) && modal.statusId) {
+        await handleSetStatus(modal.statusId, modal.action as 'PASS' | 'FAIL' | 'CONDITIONAL');
+      } else if (modal.action === 'print' && modal.statusId) {
+        const status = statuses.find((s) => s.id === modal.statusId);
+        if (status) await handleGeneratePDF(status.student.id);
+      } else if (modal.action === 'print_level') {
+        await handleGeneratePDF();
+      } else if (modal.action === 'promote' && modal.statusId) {
+        await handlePromoteStudent(modal.statusId);
+      }
+      setModal({ show: false });
+    } catch (err: any) {
+      const message = err.response?.data?.error || (err instanceof Error ? err.message : 'Unknown error');
+      toast.error(`Action failed: ${message}`);
     }
   };
 
@@ -275,7 +316,9 @@ const ReportCard: React.FC = () => {
               <button className="p-2 bg-gray-300 rounded" onClick={closeModal}>
                 Cancel
               </button>
-      
+              <button className="p-2 bg-blue-500 text-white rounded" onClick={handleConfirmModal}>
+                Okay
+              </button>
             </div>
           </Modal>
         )}

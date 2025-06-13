@@ -1,0 +1,103 @@
+.b-gradeentry-page {
+  padding: 16px;
+}
+
+.b-gradeentry-heading {
+  font-size: 1.75rem;
+  font-weight: bold;
+  margin-bottom: 16px;
+}
+
+.b-select-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.b-gradeentry-table-container {
+  overflow-x: auto;
+}
+
+.b-grade-input {
+  width: 100%;
+  padding: 4px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.b-button-group {
+  display: flex;
+  gap: 8px;
+}
+
+.b-check-button,
+.b-submit-button,
+.b-update-button,
+.b-cancel-button {
+  padding: 8px 16px;
+  border-radius: 4px;
+  color: white;
+  cursor: pointer;
+}
+
+.b-check-button {
+  background-color: #3b82f6;
+}
+
+.b-submit-button {
+  background-color: #3b82f6;
+}
+
+.b-update-button {
+  background-color: #22c55e;
+}
+
+.b-cancel-button {
+  background-color: #ef4444;
+}
+
+.b-gradeentry-message {
+  margin-top: 16px;
+  color: #6b7280;
+}
+
+/* Modal Styles */
+.b-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.b-modal-content {
+  background-color: white;
+  padding: 24px;
+  border-radius: 8px;
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.b-modal-heading {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 16px;
+}
+
+.b-student-name {
+  cursor: pointer;
+  color: #2563eb;
+}
+
+.b-student-name:hover {
+  text-decoration: underline;
+}

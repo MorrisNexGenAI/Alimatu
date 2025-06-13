@@ -1,28 +1,39 @@
+export interface Grade {
+  id?: number;
+  student_id: number;
+  subject_id: number;
+  period_id: number;
+  score: number;
+  enrollment_id?: number;
+}
+
 export interface GradeSheetEntry {
-  student: number;
+  id?: number;
   student_id: number;
   student_name: string;
-  id: number;
-  enrollment_id: number; // ForeignKey to Enrollment
-  subject_id: number;    // ForeignKey to Subject
-  period_id: number;     // ForeignKey to Period
+  subject_id: number;
+  period_id?: number;
   score: number | null;
 }
 
 export interface Subject {
+  subject: any;
   id: number;
-  subject: string;
+  name: string;
 }
 
 export interface Period {
+  period: any;
   id: number;
-  period: string;
+  name: string;
 }
 
 export interface Level {
   id: number;
   name: string;
+  order?: number;
 }
+
 export interface Student {
   id: number;
   firstName: string;
@@ -30,15 +41,17 @@ export interface Student {
   gender: 'M' | 'F' | 'O';
   dob: string;
   level_id: number;
-  level:any // Optional for backward compatibility
+  level: Level | null;
   academic_year: { id: number; name: string };
 }
+
 export interface AcademicYear {
   id: number;
   name: string;
-  start_date: string;
-  end_date: string;
+  start_date?: string;
+  end_date?: string;
 }
+
 export interface GradeSheet {
   student_id: number;
   student_name: string;
@@ -74,7 +87,6 @@ export interface Enrollment {
   academic_year: AcademicYear;
 }
 
-
 export interface PassFailedStatus {
   id: number;
   student: {
@@ -82,15 +94,14 @@ export interface PassFailedStatus {
     firstName: string;
     lastName: string;
   };
-  level: {
-    id: number;
-    name: string;
-  };
+  level_id: number;
   academic_year: {
     id: number;
     name: string;
   };
-  status: 'PASS' | 'FAIL' | 'CONDITIONAL' | 'INCOMPLETE' | 'PENDING';
+  enrollment?: { id: number };
   grades_complete: boolean;
+  status: 'PASS' | 'FAIL' | 'CONDITIONAL' | 'PENDING' | 'INCOMPLETE';
   validated_by?: string;
+  template_name?: string;
 }
