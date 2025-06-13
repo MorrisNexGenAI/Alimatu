@@ -118,3 +118,7 @@ export const printReportCard = async (
     throw new Error(`Failed to print report card: ${message}`);
   }
 };
+
+export function getGradesByLevel(arg0: number) {
+  throw new Error('Function not implemented.');
+}

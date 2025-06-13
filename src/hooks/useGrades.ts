@@ -1,9 +1,9 @@
 import { useState, useCallback } from 'react';
 import { api } from '../api';
-import type { GradeSheet } from '../api/grade_sheets';
+import type { GradeSheets } from '../api/grade_sheets';
 
 export const useGrades = () => {
-  const [gradesheets, setGradesheets] = useState<GradeSheet[]>([]);
+  const [gradesheets, setGradesheets] = useState<GradeSheets[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -12,7 +12,12 @@ export const useGrades = () => {
     setError(null);
     try {
       const data = await api.grade_sheets.getGradesByLevel(Number(levelId));
-      setGradesheets(data);
+      if (Array.isArray(data)) {
+        setGradesheets(data);
+      } else {
+        setGradesheets([]);
+        setError('No grades data returned');
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to load grades';
       setError(message);
