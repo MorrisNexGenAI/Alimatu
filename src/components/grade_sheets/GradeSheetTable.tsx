@@ -1,7 +1,7 @@
 // C:\Users\USER\Desktop\GradeSheet\SchoolGradesSystem\src\components\grade_sheets\GradeSheetTable.tsx
 import React from 'react';
-import type { GradeSheet } from '../../api/grade_sheets';
-import type { Subject, Period } from '../../types';
+import type { GradeSheets } from '../../api/grade_sheets';
+import type { Subject, Period, GradeSheet } from '../../types';
 
 interface GradeSheetTableProps {
   gradesheets: GradeSheet[];

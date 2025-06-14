@@ -58,9 +58,11 @@ const StudentForm: React.FC<StudentFormProps> = ({ levelId, onStudentAdded }) =>
         lastName: newStudent.lastName,
         gender: newStudent.gender as 'M' | 'F' | 'O',
         dob: newStudent.dob,
-        level_id: typeof newStudent.level === 'object' ? newStudent.level.id : newStudent.level,
+        level_id: typeof newStudent.level === 'object' && newStudent.level
+          ? newStudent.level.id
+          : (newStudent.level !== null && newStudent.level !== undefined ? newStudent.level : 0),
         academic_year: newStudent.academic_year,
-        level: undefined
+        level: null
       });
       setFirstName('');
       setLastName('');

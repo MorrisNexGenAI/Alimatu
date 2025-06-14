@@ -6,3 +6,4 @@ export const getPeriods = async (): Promise<Period[]> => {
   const response = await axios.get(`${BASE_URL}/api/periods/`);
   return response.data;
 };
+

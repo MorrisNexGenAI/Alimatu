@@ -8,6 +8,7 @@ export interface Grade {
 }
 
 export interface GradeSheetEntry {
+  student: any;
   id?: number;
   student_id: number;
   student_name: string;
@@ -17,6 +18,7 @@ export interface GradeSheetEntry {
 }
 
 export interface Subject {
+  level: any;
   subject: any;
   id: number;
   name: string;
@@ -41,8 +43,8 @@ export interface Student {
   gender: 'M' | 'F' | 'O';
   dob: string;
   level_id: number;
-  level: Level | null;
-  academic_year: { id: number; name: string };
+  level: number | { id: number } | null;
+  academic_year: number | { id: number; name: string };
 }
 
 export interface AcademicYear {

@@ -8,6 +8,7 @@ import GradeViewPage from '../pages/GradeViewPage';
 import StudentManagementPage from '../pages/StudentManagementPage';
 import ReportCard from '../pages/ReportCard';
 
+
 const AppRoutes: React.FC = () => {
   return (
     <Routes>

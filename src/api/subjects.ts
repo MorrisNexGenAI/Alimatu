@@ -13,3 +13,14 @@ export const getSubjectsByLevel = async (levelId: number): Promise<Subject[]> =>
   console.log('Subjects by Level Response:', response.data); // Debug
   return response.data;
 };
+
+
+
+export const createSubject = async (data: { subject: string; level: number }) => {
+  const response = await axios.post(`${BASE_URL}/api/subjects/`, data);
+  return response.data;
+};
+
+export const deleteSubject = async (id: number) => {
+  await axios.delete(`${BASE_URL}/api/subjects/${id}/`);
+};

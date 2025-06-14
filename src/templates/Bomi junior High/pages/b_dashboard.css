@@ -1,0 +1,108 @@
+/* Bomi Junior High Dashboard Styles */
+:root {
+  --primary-color: #FFFFFF; /* White */
+  --secondary-color: #008000; /* Green */
+  --gradient-start: #00A000; /* Darker Green for gradient */
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --text-color: #333333;
+  --error-color: #EF4444; /* Red for errors */
+}
+
+.b-dashboard-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  background-color: #F5F5F5;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px var(--shadow-color);
+}
+
+.b-dashboard-heading {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--secondary-color);
+  margin-bottom: 1.5rem;
+  position: relative;
+  padding-bottom: 0.5rem;
+}
+
+.b-dashboard-heading::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 50px;
+  height: 3px;
+  background-color: var(--secondary-color);
+  border-radius: 2px;
+}
+
+.b-dashboard-card {
+  background-color: var(--primary-color);
+  border: 1px solid var(--secondary-color);
+  border-radius: 8px;
+  box-shadow: 0 4px 6px var(--shadow-color);
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.b-card-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-color);
+  margin-bottom: 0.5rem;
+}
+
+.b-card-value {
+  font-size: 1.5rem;
+  color: var(--text-color);
+}
+
+.b-quick-links {
+  list-style-type: disc;
+  padding-left: 1.25rem;
+  color: var(--text-color);
+}
+
+.b-link {
+  color: var(--secondary-color);
+  transition: all 0.3s ease;
+}
+
+.b-link:hover {
+  text-decoration: underline;
+}
+
+.b-dashboard-message, .b-error-message {
+  text-align: center;
+  font-size: 1rem;
+  color: var(--text-color);
+  margin-top: 1.5rem;
+  padding: 0.75rem;
+  background-color: var(--primary-color);
+  border-radius: 8px;
+  box-shadow: 0 2px 4px var(--shadow-color);
+}
+
+.b-error-message {
+  color: var(--error-color);
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .b-dashboard-page {
+    padding: 1rem;
+  }
+
+  .b-dashboard-heading {
+    font-size: 1.25rem;
+  }
+
+  .b-card-title {
+    font-size: 1rem;
+  }
+
+  .b-card-value {
+    font-size: 1.25rem;
+  }
+}

@@ -122,3 +122,7 @@ export const printReportCard = async (
 export function getGradesByLevel(arg0: number) {
   throw new Error('Function not implemented.');
 }
+export function getRecentGradesCount(): any {
+    throw new Error('Function not implemented.');
+}
+

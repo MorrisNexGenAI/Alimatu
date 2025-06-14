@@ -7,7 +7,8 @@ import {
   UsersIcon, 
   DocumentTextIcon, 
   PencilIcon, 
-  UserGroupIcon 
+  UserGroupIcon, 
+  Cog6ToothIcon
 } from  '@heroicons/react/24/outline';// Import relevant icons
 
 const Sidebar: React.FC = () => {

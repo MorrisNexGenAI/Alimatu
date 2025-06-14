@@ -1,4 +1,4 @@
-/* C:\Users\USER\Desktop\GradeSheet\SchoolGradesSystem\src\pages\b_gradesheets.css */
+/* Bomi Junior High Grade Sheets Styles */
 :root {
   --primary-color: #FFFFFF; /* White */
   --secondary-color: #008000; /* Green */
@@ -11,15 +11,15 @@
 
 .b-gradesheet-page {
   max-width: 1200px;
-  margin: 0 auto; /* Center the content */
+  margin: 0 auto;
   padding: 1.5rem;
-  background-color: #F5F5F5; /* Light gray background */
+  background-color: #F5F5F5;
   border-radius: 12px;
   box-shadow: 0 4px 6px var(--shadow-color);
 }
 
 .b-gradesheet-heading {
-  font-size: 1.5rem; /* 24px */
+  font-size: 1.5rem;
   font-weight: 700;
   color: var(--secondary-color);
   margin-bottom: 1.5rem;
@@ -39,13 +39,13 @@
 }
 
 .b-student-heading {
-  font-size: 1.25rem; /* 20px */
+  font-size: 1.25rem;
   font-weight: 600;
   color: var(--text-color);
   margin-bottom: 0.75rem;
 }
 
-/* Style the Select component */
+/* Select component */
 div:has(> select) {
   display: flex;
   flex-direction: column;
@@ -90,7 +90,7 @@ div:has(> select) + p {
 
 /* Style student sections and tables */
 .mb-6 {
-  margin-bottom: 1.5rem; /* Override Tailwind mb-6 */
+  margin-bottom: 1.5rem;
 }
 
 .b-gradesheet-table-container {
@@ -99,7 +99,7 @@ div:has(> select) + p {
   border-radius: 10px;
   padding: 1rem;
   box-shadow: 0 4px 6px var(--shadow-color);
-  overflow-x: auto; /* Handle overflow on small screens */
+  overflow-x: auto;
 }
 
 table {
@@ -109,12 +109,12 @@ table {
 }
 
 th {
-  background-color: #E5E7EB; /* Light gray header */
+  background-color: #E5E7EB;
   color: var(--text-color);
   padding: 0.75rem;
   text-align: left;
   border-bottom: 2px solid var(--secondary-color);
-  white-space: nowrap; /* Prevent wrapping in headers */
+  white-space: nowrap;
 }
 
 td {
@@ -122,15 +122,11 @@ td {
   border-bottom: 1px solid #E5E7EB;
   color: var(--text-color);
   text-align: left;
-  white-space: nowrap; /* Prevent wrapping in cells */
-}
-
-td.text-center {
-  text-align: center;
+  white-space: nowrap;
 }
 
 tr:hover {
-  background-color: #F1F5F9; /* Light gray on hover */
+  background-color: #F1F5F9;
 }
 
 .b-gradesheet-message {
@@ -178,11 +174,11 @@ tr:hover {
   }
 
   .b-print-button {
-    display: none; /* Hide print button when printing */
+    display: none;
   }
 
   th {
-    background-color: #FFFFFF; /* White header for print */
+    background-color: #FFFFFF;
     border-bottom: 1px solid #000000;
     color: #000000;
   }
@@ -193,7 +189,7 @@ tr:hover {
   }
 
   tr:hover {
-    background-color: #FFFFFF; /* Disable hover effect */
+    background-color: #FFFFFF;
   }
 }
 

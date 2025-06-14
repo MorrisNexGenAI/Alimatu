@@ -1,0 +1,146 @@
+/* Base styles for the student management page */
+.b-student-management-page {
+  padding: 1rem;
+  background-color: #f9fafb; /* Light background for Bomi theme */
+}
+
+/* Heading */
+.b-student-management-heading {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937; /* Dark gray for text */
+  margin-bottom: 1rem;
+}
+
+/* Filters container */
+.b-filters {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+/* Table styles */
+.b-student-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #d1d5db; /* Light gray border */
+  background-color: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+.b-table-header {
+  background-color: #e5e7eb; /* Light gray header */
+}
+
+.b-table-header th {
+  border: 1px solid #d1d5db;
+  padding: 0.5rem;
+  text-align: left;
+  font-weight: 600;
+  color: #374151;
+}
+
+.b-student-table td {
+  border: 1px solid #d1d5db;
+  padding: 0.5rem;
+  text-align: left;
+  color: #374151;
+}
+
+/* Button styles */
+.b-edit-btn {
+  background-color: #3b82f6; /* Blue for edit */
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  margin-right: 0.5rem;
+  transition: background-color 0.2s;
+}
+
+.b-edit-btn:hover {
+  background-color: #2563eb;
+}
+
+.b-delete-btn {
+  background-color: #ef4444; /* Red for delete */
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  transition: background-color 0.2s;
+}
+
+.b-delete-btn:hover {
+  background-color: #dc2626;
+}
+
+.b-save-btn {
+  background-color: #3b82f6;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  width: 100%;
+  transition: background-color 0.2s;
+}
+
+.b-save-btn:hover {
+  background-color: #2563eb;
+}
+
+.b-confirm-delete-btn {
+  background-color: #ef4444;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  margin-right: 0.5rem;
+  transition: background-color 0.2s;
+}
+
+.b-confirm-delete-btn:hover {
+  background-color: #dc2626;
+}
+
+.b-cancel-btn {
+  background-color: #6b7280; /* Gray for cancel */
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  transition: background-color 0.2s;
+}
+
+.b-cancel-btn:hover {
+  background-color: #4b5563;
+}
+
+/* Input and select styles */
+.b-input, .b-select {
+  border: 1px solid #d1d5db;
+  padding: 0.5rem;
+  width: 100%;
+  border-radius: 0.25rem;
+  background-color: #ffffff;
+  color: #374151;
+}
+
+.b-input:focus, .b-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+/* Message and modal styles */
+.b-student-management-message {
+  color: #374151;
+  font-size: 1rem;
+}
+
+.b-modal-heading {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.5rem;
+}
+
+.b-modal-message {
+  color: #374151;
+  margin-bottom: 1rem;
+}

@@ -54,6 +54,7 @@ const GradeInputForm: React.FC<GradeInputFormProps> = ({
         subject_id: subjectId,
         period_id: periodId,
         grades: gradesToSubmit,
+        academic_year: ''
       });
       toast.success('Grades submitted successfully');
       setGrades({});
