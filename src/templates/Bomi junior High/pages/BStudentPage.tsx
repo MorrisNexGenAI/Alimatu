@@ -4,7 +4,7 @@ import Select from '../../../components/common/Select';
 import StudentForm from '../../../components/students/StudentForm';
 import StudentList from '../../../components/students/StudentList';
 import BomiTheme from '../bomi';
-import './b_students.css';
+import '../styles/b_students.css';
 
 const BStudentPage: React.FC = () => {
   const {

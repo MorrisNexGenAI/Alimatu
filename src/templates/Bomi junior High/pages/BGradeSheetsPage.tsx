@@ -3,7 +3,7 @@ import React from 'react';
 import { useGradeSheets } from '../../../hooks/useGradeSheets';
 import Select from '../../../components/common/Select';
 import BomiTheme from '../bomi';
-import './b_gradesheets.css';
+import '../styles/b_gradesheets.css';
 
 const BGradeSheetsPage: React.FC = () => {
   const {

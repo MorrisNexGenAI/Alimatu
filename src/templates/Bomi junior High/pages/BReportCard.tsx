@@ -3,7 +3,7 @@ import { useReportCard } from '../../../hooks/useReportCard';
 import Select from '../../../components/common/Select';
 import Modal from '../../../components/common/Modal';
 import BomiTheme from '../bomi';
-import './b_gradesheets.css';
+import '../styles/b_reportcard.css';
 
 const BReportCardPage: React.FC = () => {
   const {

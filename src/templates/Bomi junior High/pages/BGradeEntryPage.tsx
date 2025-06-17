@@ -3,7 +3,7 @@ import { useGradeEntry } from '../../../hooks/useGradeEntry';
 import Select from '../../../components/common/Select';
 import StudentGradeEntryModal from '../../../components/StudentGradeEntryModal';
 import BomiTheme from '../bomi';
-import './b_gradeentry.css';
+import '../styles/b_gradeentry.css';
 
 const BGradeEntryPage: React.FC = () => {
   const {

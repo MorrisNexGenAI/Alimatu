@@ -3,7 +3,7 @@ import { useStudentManagement } from '../../../hooks/useStudentManagement';
 import Select from '../../../components/common/Select';
 import Modal from '../../../components/common/Modal';
 import BomiTheme from '../bomi';
-import './b_studentManagement.css';
+import '../styles/b_studentManagement.css';
 
 const BStudentManagementPage: React.FC = () => {
   const {

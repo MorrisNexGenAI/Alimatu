@@ -2,7 +2,7 @@ import React from 'react';
 import { useGradeView } from '../../../hooks/useGradeView';
 import GradeSheetTable from '../../../components/grade_sheets/GradeSheetTable';
 import BomiTheme from '../bomi';
-import './b_gradesheets.css';
+import '../styles/b_gradesheets.css';
 
 
 const BGradeViewPage: React.FC = () => {

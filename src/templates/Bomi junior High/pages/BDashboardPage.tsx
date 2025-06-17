@@ -1,7 +1,7 @@
 import React from 'react';
 import { useDashboard } from '../../../hooks/useDashBoard';
 import BomiTheme from '../bomi';
-import './b_dashboard.css';
+import '../styles/b_dashboard.css';
 
 const BDashboardPage: React.FC = () => {
   const { metrics, loading, error } = useDashboard();

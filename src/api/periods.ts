@@ -7,3 +7,4 @@ export const getPeriods = async (): Promise<Period[]> => {
   return response.data;
 };
 
+
