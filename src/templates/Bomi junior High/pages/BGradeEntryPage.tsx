@@ -33,6 +33,22 @@ const BGradeEntryPage: React.FC = () => {
     handleCancelUpdate,
   } = useGradeEntry();
 
+  const levelOptions = [
+    { value: '', label: 'Select a level' },
+    ...(Array.isArray(levels) ? levels.map((level) => ({
+      value: level.id.toString(),
+      label: level.name,
+    })) : []),
+  ];
+
+  const academicYearOptions = [
+    { value: '', label: 'Select an academic year' },
+    ...(Array.isArray(academicYears) ? academicYears.map((year) => ({
+      value: year.id.toString(),
+      label: year.name,
+    })) : []),
+  ];
+
   return (
     <BomiTheme>
       <div className="b-gradeentry-page p-4">
@@ -43,26 +59,14 @@ const BGradeEntryPage: React.FC = () => {
             label="Select Level"
             value={selectedLevelId?.toString() || ''}
             onChange={handleLevelChange}
-            options={[
-              { value: '', label: 'Select a level' },
-              ...levels.map((level) => ({
-                value: level.id.toString(),
-                label: level.name,
-              })),
-            ]}
+            options={levelOptions}
             disabled={loading}
           />
           <Select
             label="Select Academic Year"
             value={selectedAcademicYearId?.toString() || ''}
             onChange={handleAcademicYearChange}
-            options={[
-              { value: '', label: 'Select an academic year' },
-              ...academicYears.map((year) => ({
-                value: year.id.toString(),
-                label: year.name,
-              })),
-            ]}
+            options={academicYearOptions}
             disabled={loading}
           />
         </div>

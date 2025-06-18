@@ -2,7 +2,7 @@ import axios from 'axios';
 import { BASE_URL } from './config';
 import { Student } from '../types';
 
-export const getStudents = async (): Promise<Student[]> => {
+export const getStudents = async (params: { level_id: number; } | { level_id?: undefined; }): Promise<Student[]> => {
   const response = await axios.get(`${BASE_URL}/api/students/`);
   return response.data;
 };

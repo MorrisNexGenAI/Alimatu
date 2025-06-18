@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useRefresh } from '../context/RefreshContext';
 import { api } from '../api';
-import type { Level, AcademicYear, Period, Student, Subject, GradeSheetEntry } from '../types';
+import type { Level, AcademicYear, Period, Student, Subject, GradeSheetEntry, PaginatedResponse } from '../types';
 
 export const useGradeEntry = () => {
   const { setRefresh } = useRefresh();
@@ -29,15 +29,21 @@ export const useGradeEntry = () => {
           api.academic_years.getAcademicYears(),
           api.periods.getPeriods(),
         ]);
-        setLevels(levelData);
-        setAcademicYears(academicYearData);
-        setPeriods(periodData);
-        const currentYear = academicYearData.find((year) => year.name === '2025/2026');
-        setSelectedAcademicYearId(currentYear?.id || (academicYearData.length > 0 ? academicYearData[0].id : null));
-        console.log('Levels:', levelData, 'Academic Years:', academicYearData, 'Periods:', periodData);
+        const levels = (levelData as unknown as PaginatedResponse<Level>).results || (Array.isArray(levelData) ? levelData : []);
+        const academicYears = (academicYearData as unknown as PaginatedResponse<AcademicYear>).results || (Array.isArray(academicYearData) ? academicYearData : []);
+        const periods = (periodData as unknown as PaginatedResponse<Period>).results || (Array.isArray(periodData) ? periodData : []);
+        setLevels(levels);
+        setAcademicYears(academicYears);
+        setPeriods(periods);
+        const currentYear = academicYears.find((year) => year.name === '2025/2026');
+        setSelectedAcademicYearId(currentYear?.id || (academicYears.length > 0 ? academicYears[0].id : null));
+        console.log('Levels:', levels, 'Academic Years:', academicYears, 'Periods:', periods);
       } catch (err) {
         toast.error('Failed to load initial data');
         console.error('Initial Fetch Error:', err);
+        setLevels([]);
+        setAcademicYears([]);
+        setPeriods([]);
       } finally {
         setLoading(false);
       }
@@ -57,10 +63,12 @@ export const useGradeEntry = () => {
       try {
         const academicYear = academicYears.find((ay) => ay.id === selectedAcademicYearId)?.name;
         if (!academicYear) throw new Error('Invalid academic year selected');
-        const [studentsData, subjectsData] = await Promise.all([
+        const [studentsResponse, subjectsResponse] = await Promise.all([
           api.students.getStudentsByLevel(selectedLevelId, academicYear),
           api.subjects.getSubjectsByLevel(selectedLevelId),
         ]);
+        const studentsData = (studentsResponse as unknown as PaginatedResponse<Student>).results || (Array.isArray(studentsResponse) ? studentsResponse : []);
+        const subjectsData = (subjectsResponse as unknown as PaginatedResponse<Subject>).results || (Array.isArray(subjectsResponse) ? subjectsResponse : []);
         const filteredStudents = studentsData.filter(
           (student) => !(student.firstName === 'Test' && student.lastName === 'Student')
         );
@@ -109,6 +117,10 @@ export const useGradeEntry = () => {
 
   const handleGradeChange = (studentId: number, value: string) => {
     const score = value === '' ? null : parseFloat(value);
+    if (score !== null && (score < 0 || score > 100)) {
+      toast.error('Score must be between 0 and 100');
+      return;
+    }
     setGrades((prev) => ({ ...prev, [studentId]: score }));
   };
 
@@ -130,27 +142,35 @@ export const useGradeEntry = () => {
       toast.error('Invalid academic year selected');
       return;
     }
+    const validGrades = Object.entries(grades)
+      .filter(([studentId, score]) => score !== null && students.some((s) => s.id === parseInt(studentId)))
+      .map(([studentId, score]) => ({
+        student_id: parseInt(studentId),
+        score: Math.round(score!), // Ensure integer score for backend
+      }));
+    if (validGrades.length === 0) {
+      toast.error('No valid grades to submit. Ensure grades are entered for enrolled students.');
+      return;
+    }
     const gradeData = {
       level: selectedLevelId,
       subject_id: selectedSubjectId,
       period_id: selectedPeriodId,
       academic_year: academicYear,
-      grades: Object.entries(grades)
-        .filter(([_, score]) => score !== null)
-        .map(([studentId, score]) => ({
-          student_id: parseInt(studentId),
-          score: score!,
-        })),
+      grades: validGrades,
     };
+    console.log('Submitting grades:', gradeData);
     try {
-      await api.grade_sheets.postGrades(gradeData);
+      const response = await api.grade_sheets.postGrades(gradeData);
+      console.log('Grade submission response:', response);
       toast.success('Grades submitted successfully');
       setGrades({});
       setExistingGrades([]);
       setRefresh((prev) => prev + 1);
-    } catch (err) {
-      toast.error('Failed to submit grades');
-      console.error('Submit Error:', err);
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Failed to submit grades';
+      toast.error(errorMessage);
+      console.error('Submit Error:', err.response?.data || err);
     }
   };
 
@@ -204,27 +224,35 @@ export const useGradeEntry = () => {
       toast.error('Invalid academic year selected');
       return;
     }
+    const validGrades = Object.entries(grades)
+      .filter(([studentId, score]) => score !== null && students.some((s) => s.id === parseInt(studentId)))
+      .map(([studentId, score]) => ({
+        student_id: parseInt(studentId),
+        score: Math.round(score!), // Ensure integer score for backend
+      }));
+    if (validGrades.length === 0) {
+      toast.error('No valid grades to update. Ensure grades are entered for enrolled students.');
+      return;
+    }
     const updateData = {
       level: selectedLevelId,
       subject_id: selectedSubjectId,
       period_id: selectedPeriodId,
       academic_year: academicYear,
-      grades: Object.entries(grades)
-        .filter(([_, score]) => score !== null)
-        .map(([studentId, score]) => ({
-          student_id: parseInt(studentId),
-          score: score!,
-        })),
+      grades: validGrades,
     };
+    console.log('Updating grades:', updateData);
     try {
-      await api.grade_sheets.postGrades(updateData); // Use postGrades for updates (backend handles duplicates)
+      const response = await api.grade_sheets.postGrades(updateData);
+      console.log('Grade update response:', response);
       toast.success('Grades updated successfully');
       setExistingGrades([]);
       setGrades({});
       setRefresh((prev) => prev + 1);
-    } catch (err) {
-      toast.error('Failed to update grades');
-      console.error('Update Error:', err);
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Failed to update grades';
+      toast.error(errorMessage);
+      console.error('Update Error:', err.response?.data || err);
     }
   };
 

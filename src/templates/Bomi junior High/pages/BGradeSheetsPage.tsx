@@ -1,4 +1,3 @@
-// src/templates/BomiJuniorHigh/pages/BGradeSheetsPage.tsx
 import React from 'react';
 import { useGradeSheets } from '../../../hooks/useGradeSheets';
 import Select from '../../../components/common/Select';
@@ -26,6 +25,22 @@ const BGradeSheetsPage: React.FC = () => {
     return <p className="b-gradesheet-message">Loading data...</p>;
   }
 
+  const levelOptions = [
+    { value: '', label: 'Select Level' },
+    ...(Array.isArray(levels) ? levels.map((level) => ({
+      value: level.id.toString(),
+      label: level.name,
+    })) : []),
+  ];
+
+  const academicYearOptions = [
+    { value: '', label: 'Select Academic Year' },
+    ...(Array.isArray(academicYears) ? academicYears.map((year) => ({
+      value: year.id.toString(),
+      label: year.name,
+    })) : []),
+  ];
+
   return (
     <BomiTheme>
       <div className="b-gradesheet-page p-4">
@@ -36,13 +51,7 @@ const BGradeSheetsPage: React.FC = () => {
             label="Level"
             value={selectedLevelId?.toString() || ''}
             onChange={handleLevelChange}
-            options={[
-              { value: '', label: 'Select Level' },
-              ...levels.map((level) => ({
-                value: level.id.toString(),
-                label: level.name,
-              })),
-            ]}
+            options={levelOptions}
             disabled={loading}
             error={errors.levels}
           />
@@ -50,13 +59,7 @@ const BGradeSheetsPage: React.FC = () => {
             label="Academic Year"
             value={selectedAcademicYearId?.toString() || ''}
             onChange={handleAcademicYearChange}
-            options={[
-              { value: '', label: 'Select Academic Year' },
-              ...academicYears.map((year) => ({
-                value: year.id.toString(),
-                label: year.name,
-              })),
-            ]}
+            options={academicYearOptions}
             disabled={loading}
             error={errors.academicYears}
           />

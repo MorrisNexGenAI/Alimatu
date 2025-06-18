@@ -22,12 +22,19 @@ const StudentForm: React.FC<StudentFormProps> = ({ levelId, onStudentAdded }) =>
     const fetchAcademicYears = async () => {
       setLoadingAcademicYears(true);
       try {
-        const data = await api.academic_years.getAcademicYears();
+        const response = await api.academic_years.getAcademicYears();
+        // Handle paginated or direct array response
+        const data: AcademicYear[] = Array.isArray(response)
+          ? response
+          : (response && Array.isArray((response as { results?: AcademicYear[] }).results)
+              ? (response as { results: AcademicYear[] }).results
+              : []);
         setAcademicYears(data);
-        const currentYear = data.find((year: { name: string; }) => year.name === '2025/2026');
+        const currentYear = data.find((year: { name: string }) => year.name === '2025/2026');
         setSelectedAcademicYear(currentYear?.id || (data.length > 0 ? data[0].id : null));
       } catch (err) {
         toast.error('Failed to load academic years');
+        setAcademicYears([]);
       } finally {
         setLoadingAcademicYears(false);
       }
@@ -131,6 +138,8 @@ const StudentForm: React.FC<StudentFormProps> = ({ levelId, onStudentAdded }) =>
           <label className="block text-sm font-medium">Academic Year</label>
           {loadingAcademicYears ? (
             <p className="mt-1">Loading academic years...</p>
+          ) : academicYears.length === 0 ? (
+            <p className="mt-1 text-red-500">No academic years available</p>
           ) : (
             <select
               value={selectedAcademicYear?.toString() ?? ''}
@@ -149,7 +158,7 @@ const StudentForm: React.FC<StudentFormProps> = ({ levelId, onStudentAdded }) =>
       <button
         type="submit"
         className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        disabled={loading || loadingAcademicYears}
+        disabled={loading || loadingAcademicYears || academicYears.length === 0}
       >
         {loading ? 'Adding...' : 'Add Student'}
       </button>

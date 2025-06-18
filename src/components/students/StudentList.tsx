@@ -7,8 +7,12 @@ interface StudentListProps {
 }
 
 const StudentList: React.FC<StudentListProps> = ({ students, error }) => {
-  if (error || students.length === 0) {
-    return <p className="text-center">{error || 'No students found for this level'}</p>;
+  if (error) {
+    return <p className="text-center text-red-500">{error}</p>;
+  }
+
+  if (!Array.isArray(students) || students.length === 0) {
+    return <p className="text-center">No students found for this level</p>;
   }
 
   return (
@@ -34,11 +38,10 @@ const StudentList: React.FC<StudentListProps> = ({ students, error }) => {
               <td className="p-2">{student.dob}</td>
               <td className="p-2 text-center">{student.level_id}</td>
               <td className="p-2">
-        {typeof student.academic_year === 'object' && student.academic_year !== null
-          ? student.academic_year.name
-          : 'N/A'}
-      </td>
-            
+                {typeof student.academic_year === 'object' && student.academic_year !== null
+                  ? student.academic_year.name
+                  : 'N/A'}
+              </td>
             </tr>
           ))}
         </tbody>

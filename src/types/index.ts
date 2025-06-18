@@ -81,6 +81,10 @@ export interface GradeSheet {
     final_avg?: number | string;
   }[];
 }
+export interface PaginatedResponse<T> {
+  count: number;
+  results: T[];
+}
 
 export interface Enrollment {
   id: number;
