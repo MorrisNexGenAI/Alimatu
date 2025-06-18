@@ -3,7 +3,7 @@ import React from 'react';
 interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   label: string;
   options: { value: string | number; label: string }[];
-  error?: string;
+  error?: string | null;
 }
 
 const Select: React.FC<SelectProps> = ({ label, options, error, ...props }) => (

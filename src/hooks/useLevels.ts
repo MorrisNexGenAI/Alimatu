@@ -1,34 +1,37 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import { api } from '../api';
 import type { Level } from '../types';
 
 export const useLevels = () => {
   const [levels, setLevels] = useState<Level[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const loadLevels = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await api.levels.getLevels();
-      // Handle paginated response safely
-      const data = (response && typeof response === 'object' && 'results' in response)
-        ? (response as { results: Level[] }).results
-        : response;
-      setLevels(Array.isArray(data) ? data : []);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to load levels';
-      setError(message);
-      setLevels([]);
-    } finally {
-      setLoading(false);
-    }
+  useEffect(() => {
+    const fetchLevels = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const levelData = await api.levels.getLevels();
+        console.log('Raw Levels Response:', JSON.stringify(levelData, null, 2));
+        setLevels(levelData);
+        console.log('Processed Levels:', JSON.stringify(levelData, null, 2));
+      } catch (err: any) {
+        const errorMessage = err.response?.data?.message || 'Failed to load levels';
+        setError(errorMessage);
+        console.error('Fetch Levels Error:', JSON.stringify({
+          message: err.message,
+          response: err.response?.data,
+          status: err.response?.status,
+        }, null, 2));
+        toast.error(errorMessage);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchLevels();
   }, []);
 
-  useEffect(() => {
-    loadLevels();
-  }, [loadLevels]);
-
-  return { levels, loadLevels, loading, error };
+  return { levels, loading, error };
 };

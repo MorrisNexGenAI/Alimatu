@@ -8,7 +8,7 @@ export interface Grade {
 }
 
 export interface GradeSheetEntry {
-  student: any;
+  student: Student; // Stricter type instead of 'any'
   id?: number;
   student_id: number;
   student_name: string;
@@ -18,16 +18,16 @@ export interface GradeSheetEntry {
 }
 
 export interface Subject {
-  level: any;
   subject: any;
   id: number;
-  name: string;
+  name: string; // Use 'name' instead of 'subject'
+  level_id: number; // Replace 'level: any'
 }
 
 export interface Period {
   period: any;
   id: number;
-  name: string;
+  name: string; // Use 'name' instead of 'period'
 }
 
 export interface Level {
@@ -43,8 +43,8 @@ export interface Student {
   gender: 'M' | 'F' | 'O';
   dob: string;
   level_id: number;
-  level: number | { id: number } | null;
-  academic_year: number | { id: number; name: string };
+  level: number | { id: number; name: string } | null; // Adjusted to match API response
+  academic_year: number | { id: number; name: string }; // Adjusted to match API response
 }
 
 export interface AcademicYear {
@@ -54,6 +54,12 @@ export interface AcademicYear {
   end_date?: string;
 }
 
+export interface PaginatedResponse<T> {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: T[];
+}
 export interface GradeSheet {
   student_id: number;
   student_name: string;
@@ -80,10 +86,6 @@ export interface GradeSheet {
     sem2_avg?: number | string;
     final_avg?: number | string;
   }[];
-}
-export interface PaginatedResponse<T> {
-  count: number;
-  results: T[];
 }
 
 export interface Enrollment {

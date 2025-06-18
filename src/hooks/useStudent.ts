@@ -19,16 +19,24 @@ export const useStudent = () => {
           api.levels.getLevels(),
           api.academic_years.getAcademicYears(),
         ]);
-        const levels = (levelData as unknown as PaginatedResponse<Level>).results || (Array.isArray(levelData) ? levelData : []);
-        const academicYears = (academicYearData as unknown as PaginatedResponse<AcademicYear>).results || (Array.isArray(academicYearData) ? academicYearData : []);
-        setLevels(levels);
-        setAcademicYears(academicYears);
-        const currentYear = academicYears.find((year) => year.name === '2025/2026');
+        console.log('Raw Levels Response:', JSON.stringify(levelData, null, 2));
+        console.log('Raw Academic Years Response:', JSON.stringify(academicYearData, null, 2));
+
+        setLevels(levelData);
+        setAcademicYears(academicYearData);
+        const currentYear = academicYears.find((year: AcademicYear) => year.name === '2025/2026');
         setSelectedAcademicYearId(currentYear?.id || (academicYears.length > 0 ? academicYears[0].id : null));
-        console.log('Levels:', levels, 'Academic Years:', academicYears);
-      } catch (err) {
+        console.log('Processed Levels:', JSON.stringify(levelData, null, 2), 'Academic Years:', JSON.stringify(academicYearData, null, 2));
+      } catch (err: any) {
+        const errorDetails = {
+          message: err.message || 'Unknown error',
+          response: err.response?.data,
+          status: err.response?.status,
+          config: err.config,
+          stack: err.stack,
+        };
+        console.error('Initial Fetch Error:', JSON.stringify(errorDetails, null, 2));
         toast.error('Failed to load initial data');
-        console.error('Initial Fetch Error:', err);
         setLevels([]);
         setAcademicYears([]);
       } finally {
@@ -49,15 +57,21 @@ export const useStudent = () => {
         const academicYear = academicYears.find((ay) => ay.id === selectedAcademicYearId)?.name;
         if (!academicYear) throw new Error('Invalid academic year selected');
         const studentsResponse = await api.students.getStudentsByLevel(selectedLevelId, academicYear);
-        const studentsData = (studentsResponse as unknown as PaginatedResponse<Student>).results || (Array.isArray(studentsResponse) ? studentsResponse : []);
-        const filteredStudents = studentsData.filter(
-          (student) => !(student.firstName === 'Test' && student.lastName === 'Student')
+        console.log('Raw Students Response:', JSON.stringify(studentsResponse, null, 2));
+        const filteredStudents = studentsResponse.filter(
+          (student: Student) => !(student.firstName === 'Test' && student.lastName === 'Student')
         );
         setStudents(filteredStudents || []);
-        console.log('Students:', filteredStudents);
-      } catch (err) {
+        console.log('Students:', JSON.stringify(filteredStudents, null, 2));
+      } catch (err: any) {
+        const errorDetails = {
+          message: err.message || 'Unknown error',
+          response: err.response?.data,
+          status: err.response?.status,
+          config: err.config,
+        };
+        console.error('Fetch Students Error:', JSON.stringify(errorDetails, null, 2));
         toast.error('Failed to load students');
-        console.error('Fetch Students Error:', err);
         setStudents([]);
       } finally {
         setLoading(false);
