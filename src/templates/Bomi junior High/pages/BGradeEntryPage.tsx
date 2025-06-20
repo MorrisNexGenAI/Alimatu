@@ -1,7 +1,6 @@
 import React from 'react';
 import { useGradeEntry } from '../../../hooks/useGradeEntry';
 import Select from '../../../components/common/Select';
-import StudentGradeEntryModal from '../../../components/StudentGradeEntryModal';
 import BomiTheme from '../bomi';
 import '../styles/b_gradeentry.css';
 
@@ -9,28 +8,23 @@ const BGradeEntryPage: React.FC = () => {
   const {
     levels,
     academicYears,
+    subjects,
+    periods,
+    students,
     selectedLevelId,
     selectedAcademicYearId,
-    students,
-    subjects,
     selectedSubjectId,
-    periods,
     selectedPeriodId,
     loading,
     grades,
     existingGrades,
-    selectedStudent,
     handleLevelChange,
     handleAcademicYearChange,
     handleSubjectChange,
     handlePeriodChange,
     handleGradeChange,
-    handleStudentClick,
-    handleCloseModal,
+    handleCheckExistingGrades,
     handleSubmit,
-    handleCheckExistingGrade,
-    handleUpdateGrades,
-    handleCancelUpdate,
   } = useGradeEntry();
 
   const levelOptions = [
@@ -46,6 +40,14 @@ const BGradeEntryPage: React.FC = () => {
     ...(Array.isArray(academicYears) ? academicYears.map((year) => ({
       value: year.id.toString(),
       label: year.name,
+    })) : []),
+  ];
+
+  const subjectOptions = [
+    { value: '', label: 'Select a subject' },
+    ...(Array.isArray(subjects) ? subjects.map((subject) => ({
+      value: subject.id.toString(),
+      label: subject.subject,
     })) : []),
   ];
 
@@ -83,13 +85,7 @@ const BGradeEntryPage: React.FC = () => {
               label="Select Subject"
               value={selectedSubjectId?.toString() || ''}
               onChange={handleSubjectChange}
-              options={[
-                { value: '', label: 'Select a subject' },
-                ...subjects.map((subject) => ({
-                  value: subject.id.toString(),
-                  label: subject.subject,
-                })),
-              ]}
+              options={subjectOptions}
               disabled={loading}
             />
             <Select
@@ -98,16 +94,16 @@ const BGradeEntryPage: React.FC = () => {
               onChange={handlePeriodChange}
               options={[
                 { value: '', label: 'Select a period' },
-                ...periods.map((period) => ({
+                ...(Array.isArray(periods) ? periods.map((period) => ({
                   value: period.id.toString(),
                   label: period.period,
-                })),
+                })) : []),
               ]}
               disabled={loading}
             />
             <button
               className="b-check-button p-2 bg-blue-500 text-white rounded"
-              onClick={handleCheckExistingGrade}
+              onClick={handleCheckExistingGrades}
               disabled={loading || !selectedLevelId || !selectedAcademicYearId || !selectedSubjectId || !selectedPeriodId}
             >
               Check Existing Grade
@@ -131,7 +127,6 @@ const BGradeEntryPage: React.FC = () => {
                       <td className="border p-2">
                         <span
                           className="b-student-name cursor-pointer text-blue-600 hover:underline"
-                          onClick={() => handleStudentClick(student)}
                         >
                           {`${student.firstName} ${student.lastName}`}
                         </span>
@@ -156,31 +151,13 @@ const BGradeEntryPage: React.FC = () => {
                 </tbody>
               </table>
               <div className="b-button-group mt-4">
-                {existingGrades.length > 0 ? (
-                  <button
-                    className="b-update-button p-2 bg-green-500 text-white rounded"
-                    onClick={handleUpdateGrades}
-                    disabled={loading || !selectedSubjectId || !selectedPeriodId}
-                  >
-                    Update Grade
-                  </button>
-                ) : (
-                  <button
-                    className="b-submit-button p-2 bg-blue-500 text-white rounded"
-                    onClick={handleSubmit}
-                    disabled={loading || !selectedSubjectId || !selectedPeriodId}
-                  >
-                    Submit Grade
-                  </button>
-                )}
-                {existingGrades.length > 0 && (
-                  <button
-                    className="b-cancel-button p-2 bg-red-500 text-white rounded ml-2"
-                    onClick={handleCancelUpdate}
-                  >
-                    Cancel Update
-                  </button>
-                )}
+                <button
+                  className="b-submit-button p-2 bg-blue-500 text-white rounded"
+                  onClick={handleSubmit}
+                  disabled={loading || !selectedSubjectId || !selectedPeriodId}
+                >
+                  Submit Grade
+                </button>
               </div>
             </div>
           ) : (
@@ -188,17 +165,6 @@ const BGradeEntryPage: React.FC = () => {
               {loading ? 'Loading students...' : 'No students available for this level and academic year.'}
             </p>
           )
-        )}
-
-        {selectedStudent && (
-          <StudentGradeEntryModal
-            student={selectedStudent}
-            subjects={subjects}
-            periods={periods}
-            academicYear={academicYears.find((ay) => ay.id === selectedAcademicYearId) || null}
-            levelId={selectedLevelId}
-            onClose={handleCloseModal}
-          />
         )}
       </div>
     </BomiTheme>

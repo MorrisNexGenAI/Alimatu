@@ -1,60 +1,73 @@
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useRefresh } from '../context/RefreshContext';
-import { api } from '../api';
-import type { Level, AcademicYear, Period, Student, Subject, GradeSheetEntry } from '../types';
+import { gradesApi } from '../api/grades';
+import type { Level, AcademicYear, Subject, Period, Student, GradeEntry, ExistingGrade, PostGradesData } from '../types/index';
 
 export const useGradeEntry = () => {
   const { setRefresh } = useRefresh();
   const [levels, setLevels] = useState<Level[]>([]);
   const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [periods, setPeriods] = useState<Period[]>([]);
+  const [students, setStudents] = useState<Student[]>([]);
   const [selectedLevelId, setSelectedLevelId] = useState<number | null>(null);
   const [selectedAcademicYearId, setSelectedAcademicYearId] = useState<number | null>(null);
-  const [students, setStudents] = useState<Student[]>([]);
-  const [subjects, setSubjects] = useState<Subject[]>([]);
   const [selectedSubjectId, setSelectedSubjectId] = useState<number | null>(null);
-  const [periods, setPeriods] = useState<Period[]>([]);
   const [selectedPeriodId, setSelectedPeriodId] = useState<number | null>(null);
-  const [loading, setLoading] = useState(false);
   const [grades, setGrades] = useState<Record<number, number | null>>({});
-  const [existingGrades, setExistingGrades] = useState<GradeSheetEntry[]>([]);
-  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  const [existingGrades, setExistingGrades] = useState<ExistingGrade[]>([]);
+  const [loading, setLoading] = useState(false);
 
+  // Fetch initial data (levels, academic years, periods)
   useEffect(() => {
     const fetchInitialData = async () => {
       setLoading(true);
       try {
-        const [levelData, academicYearData, periodData] = await Promise.all([
-          api.levels.getLevels(),
-          api.academic_years.getAcademicYears(),
-          api.periods.getPeriods(),
+        const [levelResponse, academicYearResponse, periodData] = await Promise.all([
+          gradesApi.getLevels(),
+          gradesApi.getAcademicYears(),
+          gradesApi.getPeriods(),
         ]);
-        console.log('Raw Levels Response:', JSON.stringify(levelData, null, 2));
-        console.log('Raw Academic Years Response:', JSON.stringify(academicYearData, null, 2));
-        console.log('Raw Periods Response:', JSON.stringify(periodData, null, 2));
 
-        // Validate academicYearData is an array
-        if (!Array.isArray(academicYearData)) {
-          throw new Error(`Invalid academicYearData type: ${typeof academicYearData}`);
+        // Handle potentially paginated levels response
+        let levelData: Level[] = [];
+        if (Array.isArray(levelResponse)) {
+          levelData = levelResponse;
+        } else if (levelResponse && typeof levelResponse === 'object' && Array.isArray(levelResponse.results)) {
+          levelData = levelResponse.results;
+        } else {
+          console.warn('Unexpected levelResponse format:', JSON.stringify(levelResponse, null, 2));
+          throw new Error('Invalid levels response format');
         }
 
-        setLevels(levelData || []);
-        setAcademicYears(academicYearData || []);
-        setPeriods(periodData || []);
+        // Handle potentially paginated academic years response
+        let academicYearData: AcademicYear[] = [];
+        if (Array.isArray(academicYearResponse)) {
+          academicYearData = academicYearResponse;
+        } else if (academicYearResponse && typeof academicYearResponse === 'object' && Array.isArray(academicYearResponse.results)) {
+          academicYearData = academicYearResponse.results;
+        } else {
+          console.warn('Unexpected academicYearResponse format:', JSON.stringify(academicYearResponse, null, 2));
+          throw new Error('Invalid academic years response format');
+        }
 
-        const currentYear = academicYearData.find((year: AcademicYear) => year.name === '2025/2026');
-        setSelectedAcademicYearId(currentYear?.id || (academicYearData.length > 0 ? academicYearData[0].id : null));
-        console.log('Levels:', JSON.stringify(levelData, null, 2), 'Academic Years:', JSON.stringify(academicYearData, null, 2), 'Periods:', JSON.stringify(periodData, null, 2));
+        console.log('Processed Levels:', JSON.stringify(levelData, null, 2));
+        console.log('Processed Academic Years:', JSON.stringify(academicYearData, null, 2));
+
+        setLevels(levelData);
+        setAcademicYears(academicYearData);
+        setPeriods(periodData);
+
+        const currentYear = academicYearData.find((year) => year.name === '2025/2026');
+        setSelectedAcademicYearId(currentYear?.id || academicYearData[0]?.id || null);
       } catch (err: any) {
-        const errorDetails = {
+        console.error('Initial Fetch Error:', JSON.stringify({
           message: err.message || 'Unknown error',
           response: err.response?.data,
           status: err.response?.status,
-          config: err.config,
-          stack: err.stack,
-        };
-        console.error('Initial Fetch Error:', JSON.stringify(errorDetails, null, 2));
-        toast.error('Failed to load initial data. Check network or backend status.');
+        }, null, 2));
+        toast.error('Failed to load initial data');
         setLevels([]);
         setAcademicYears([]);
         setPeriods([]);
@@ -65,45 +78,51 @@ export const useGradeEntry = () => {
     fetchInitialData();
   }, []);
 
+  // Fetch students and subjects when level or academic year changes
   useEffect(() => {
     if (!selectedLevelId || !selectedAcademicYearId) {
       setStudents([]);
       setSubjects([]);
       setSelectedSubjectId(null);
+      setGrades({});
+      setExistingGrades([]);
       return;
     }
+
     const fetchData = async () => {
       setLoading(true);
       try {
         const academicYear = academicYears.find((ay) => ay.id === selectedAcademicYearId)?.name;
         if (!academicYear) throw new Error('Invalid academic year selected');
-        const [studentsResponse, subjectsResponse] = await Promise.all([
-          api.students.getStudentsByLevel(selectedLevelId, academicYear),
-          api.subjects.getSubjectsByLevel(selectedLevelId),
+        const [studentData, subjectResponse] = await Promise.all([
+          gradesApi.getStudentsByLevel(selectedLevelId, academicYear),
+          gradesApi.getSubjectsByLevel(selectedLevelId),
         ]);
-        console.log('Raw Students Response:', JSON.stringify(studentsResponse, null, 2));
-        console.log('Raw Subjects Response:', JSON.stringify(subjectsResponse, null, 2));
 
-        // Fix: studentsResponse is already Student[]
-        if (!Array.isArray(studentsResponse)) {
-          console.error('Invalid studentsResponse format:', JSON.stringify(studentsResponse, null, 2));
-          throw new Error(`Expected array for studentsResponse, got ${typeof studentsResponse}`);
+        // Handle potentially paginated subjects response
+        let subjectData: Subject[] = [];
+        if (Array.isArray(subjectResponse)) {
+          subjectData = subjectResponse;
+        } else if (subjectResponse && typeof subjectResponse === 'object' && Array.isArray(subjectResponse.results)) {
+          subjectData = subjectResponse.results;
+        } else {
+          console.warn('Unexpected subjectResponse format:', JSON.stringify(subjectResponse, null, 2));
+          throw new Error('Invalid subjects response format');
         }
 
-        const filteredStudents = studentsResponse.filter(
-          (student: Student) => !(student.firstName === 'Test' && student.lastName === 'Student')
+        console.log('Processed Subjects:', JSON.stringify(subjectData, null, 2));
+
+        const filteredStudents = studentData.filter(
+          (student) => !(student.firstName === 'Test' && student.lastName === 'Student')
         );
-        setStudents(filteredStudents || []);
-        setSubjects(subjectsResponse || []);
-        console.log('Students:', JSON.stringify(filteredStudents, null, 2), 'Subjects:', JSON.stringify(subjectsResponse, null, 2));
+        setStudents(filteredStudents);
+        setSubjects(subjectData);
       } catch (err: any) {
-        const errorDetails = {
-          message: err.message || 'Unknown error',
+        console.error('Fetch Data Error:', JSON.stringify({
+          message: err.message,
           response: err.response?.data,
           status: err.response?.status,
-          config: err.config,
-        };
-        console.error('Fetch Error:', JSON.stringify(errorDetails, null, 2));
+        }, null, 2));
         toast.error('Failed to load students or subjects');
         setStudents([]);
         setSubjects([]);
@@ -114,36 +133,41 @@ export const useGradeEntry = () => {
     fetchData();
   }, [selectedLevelId, selectedAcademicYearId, academicYears]);
 
+  // Handle input changes
   const handleLevelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const levelId = parseInt(e.target.value) || null;
     setSelectedLevelId(levelId);
+    setSelectedSubjectId(null);
+    setSelectedPeriodId(null);
     setGrades({});
     setExistingGrades([]);
-    console.log('Selected Level ID:', levelId);
   };
 
   const handleAcademicYearChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const academicYearId = parseInt(e.target.value) || null;
     setSelectedAcademicYearId(academicYearId);
+    setSelectedSubjectId(null);
+    setSelectedPeriodId(null);
     setGrades({});
     setExistingGrades([]);
-    console.log('Selected Academic Year ID:', academicYearId);
   };
 
   const handleSubjectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const subjectId = parseInt(e.target.value) || null;
     setSelectedSubjectId(subjectId);
-    console.log('Selected Subject ID:', subjectId);
+    setGrades({});
+    setExistingGrades([]);
   };
 
   const handlePeriodChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const periodId = parseInt(e.target.value) || null;
     setSelectedPeriodId(periodId);
-    console.log('Selected Period ID:', periodId);
+    setGrades({});
+    setExistingGrades([]);
   };
 
   const handleGradeChange = (studentId: number, value: string) => {
-    const score = value === '' ? null : parseFloat(value);
+    const score = value === '' ? null : parseInt(value);
     if (score !== null && (score < 0 || score > 100)) {
       toast.error('Score must be between 0 and 100');
       return;
@@ -151,70 +175,10 @@ export const useGradeEntry = () => {
     setGrades((prev) => ({ ...prev, [studentId]: score }));
   };
 
-  const handleStudentClick = (student: Student) => {
-    setSelectedStudent(student);
-  };
-
-  const handleCloseModal = () => {
-    setSelectedStudent(null);
-  };
-
-  const handleSubmit = async () => {
-    if (!selectedSubjectId || !selectedPeriodId || !selectedLevelId || !selectedAcademicYearId) {
-      toast.error('Please select a level, academic year, subject, and period');
-      return;
-    }
-    const academicYear = academicYears.find((ay) => ay.id === selectedAcademicYearId)?.name;
-    if (!academicYear) {
-      toast.error('Invalid academic year selected');
-      return;
-    }
-    if (students.length === 0) {
-      toast.error('No enrolled students found for the selected level and academic year');
-      console.error('No students available:', JSON.stringify({ selectedLevelId, academicYear }, null, 2));
-      return;
-    }
-    const validGrades = Object.entries(grades)
-      .filter(([studentId, score]) => score !== null && students.some((s) => s.id === parseInt(studentId)))
-      .map(([studentId, score]) => ({
-        student_id: parseInt(studentId),
-        score: Math.round(score!), // Ensure integer score
-      }));
-    if (validGrades.length === 0) {
-      toast.error('No valid grades to submit. Ensure grades are entered for enrolled students.');
-      console.error('No valid grades:', JSON.stringify({ grades, students: students.map(s => s.id) }, null, 2));
-      return;
-    }
-    const gradeData = {
-      level: selectedLevelId,
-      subject_id: selectedSubjectId,
-      period_id: selectedPeriodId,
-      academic_year: academicYear,
-      grades: validGrades,
-    };
-    console.log('Submitting grades:', JSON.stringify(gradeData, null, 2));
-    try {
-      const response = await api.grade_sheets.postGrades(gradeData);
-      console.log('Grade submission response:', JSON.stringify(response, null, 2));
-      toast.success('Grades submitted successfully');
-      setGrades({});
-      setExistingGrades([]);
-      setRefresh((prev) => prev + 1);
-    } catch (err: any) {
-      const errorDetails = {
-        message: err.message,
-        response: err.response?.data,
-        status: err.response?.status,
-      };
-      console.error('Submit Error:', JSON.stringify(errorDetails, null, 2));
-      const errorMessage = err.response?.data?.message || 'Failed to submit grades';
-      toast.error(errorMessage);
-    }
-  };
-
-  const handleCheckExistingGrade = async () => {
+  // Check for existing grades
+  const handleCheckExistingGrades = async () => {
     if (!selectedLevelId || !selectedSubjectId || !selectedPeriodId || !selectedAcademicYearId) {
-      toast.error('Please select a level, academic year, subject, and period');
+      toast.error('Please select level, academic year, subject, and period');
       return;
     }
     const academicYear = academicYears.find((ay) => ay.id === selectedAcademicYearId)?.name;
@@ -224,43 +188,38 @@ export const useGradeEntry = () => {
     }
     setLoading(true);
     try {
-      const data = await api.grade_sheets.getGradesByPeriodSubject(
+      const data = await gradesApi.getGradesByPeriodSubject(
         selectedLevelId,
         selectedSubjectId,
         selectedPeriodId,
         academicYear
       );
-      console.log('Raw Grades Response:', JSON.stringify(data, null, 2));
       setExistingGrades(data);
       const initialGrades = data.reduce(
-        (acc, grade) => ({
+        (acc: Record<number, number | null>, grade) => ({
           ...acc,
-          [grade.student_id]: grade.score || null,
+          [grade.student_id]: grade.score,
         }),
-        {} as Record<number, number | null>
+        {}
       );
       setGrades(initialGrades);
-      if (data.length > 0) {
-        toast.success('Existing grades loaded');
-      } else {
-        toast('No existing grades found');
-      }
+      toast.success(data.length > 0 ? 'Existing grades loaded' : 'No existing grades found');
     } catch (err: any) {
-      const errorDetails = {
+      console.error('Check Grades Error:', JSON.stringify({
         message: err.message,
         response: err.response?.data,
         status: err.response?.status,
-      };
-      console.error('Check Error:', JSON.stringify(errorDetails, null, 2));
+      }, null, 2));
       toast.error('Failed to load existing grades');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleUpdateGrades = async () => {
-    if (!selectedSubjectId || !selectedPeriodId || !selectedLevelId || !selectedAcademicYearId) {
-      toast.error('Please select a level, academic year, subject, and period');
+  // Submit grades
+  const handleSubmit = async () => {
+    if (!selectedLevelId || !selectedAcademicYearId || !selectedSubjectId || !selectedPeriodId) {
+      toast.error('Please select level, academic year, subject, and period');
       return;
     }
     const academicYear = academicYears.find((ay) => ay.id === selectedAcademicYearId)?.name;
@@ -269,77 +228,68 @@ export const useGradeEntry = () => {
       return;
     }
     if (students.length === 0) {
-      toast.error('No enrolled students found for the selected level and academic year');
-      console.error('No students available:', JSON.stringify({ selectedLevelId, academicYear }, null, 2));
+      toast.error('No enrolled students found');
       return;
     }
-    const validGrades = Object.entries(grades)
-      .filter(([studentId, score]) => score !== null && students.some((s) => s.id === parseInt(studentId)))
+    const validGrades: GradeEntry[] = Object.entries(grades)
+      .filter(([_, score]) => score !== null)
       .map(([studentId, score]) => ({
         student_id: parseInt(studentId),
-        score: Math.round(score!), // Ensure integer score
+        score: score!,
+        period_id: selectedPeriodId,
       }));
     if (validGrades.length === 0) {
-      toast.error('No valid grades to update. Ensure grades are entered for enrolled students.');
-      console.error('No valid grades:', JSON.stringify({ grades, students: students.map(s => s.id) }, null, 2));
+      toast.error('No valid grades to submit');
       return;
     }
-    const updateData = {
+    const gradeData: PostGradesData = {
       level: selectedLevelId,
       subject_id: selectedSubjectId,
       period_id: selectedPeriodId,
       academic_year: academicYear,
       grades: validGrades,
     };
-    console.log('Updating grades:', JSON.stringify(updateData, null, 2));
+    console.log('Submitting grades:', JSON.stringify(gradeData, null, 2));
     try {
-      const response = await api.grade_sheets.postGrades(updateData);
-      console.log('Grade update response:', JSON.stringify(response, null, 2));
-      toast.success('Grades updated successfully');
-      setExistingGrades([]);
+      const response = await gradesApi.postGrades(gradeData);
+      console.log('Grade Submission Response:', JSON.stringify(response, null, 2));
+      if (response.errors.length > 0) {
+        toast.error(`Some grades failed: ${response.errors.map(e => e.error).join(', ')}`);
+      } else {
+        toast.success('Grades submitted successfully');
+      }
       setGrades({});
+      setExistingGrades([]);
       setRefresh((prev) => prev + 1);
     } catch (err: any) {
-      const errorDetails = {
+      console.error('Submit Grades Error:', JSON.stringify({
         message: err.message,
         response: err.response?.data,
         status: err.response?.status,
-      };
-      console.error('Update Error:', JSON.stringify(errorDetails, null, 2));
-      const errorMessage = err.response?.data?.message || 'Failed to update grades';
-      toast.error(errorMessage);
+      }, null, 2));
+      toast.error(err.response?.data?.error || 'Failed to submit grades');
     }
-  };
-
-  const handleCancelUpdate = () => {
-    setExistingGrades([]);
-    setGrades({});
   };
 
   return {
     levels,
     academicYears,
+    subjects,
+    periods,
+    students,
     selectedLevelId,
     selectedAcademicYearId,
-    students,
-    subjects,
     selectedSubjectId,
-    periods,
     selectedPeriodId,
-    loading,
     grades,
     existingGrades,
-    selectedStudent,
+    loading,
     handleLevelChange,
     handleAcademicYearChange,
     handleSubjectChange,
     handlePeriodChange,
     handleGradeChange,
-    handleStudentClick,
-    handleCloseModal,
+    handleCheckExistingGrades,
     handleSubmit,
-    handleCheckExistingGrade,
-    handleUpdateGrades,
-    handleCancelUpdate,
   };
 };

@@ -38,16 +38,17 @@ const StudentGradeEntryModal: React.FC<StudentGradeEntryModalProps> = ({
     const fetchExistingGrades = async () => {
       setLoading(true);
       try {
-        const data = await api.grade_sheets.getGradesByPeriodSubject(
+        const result = await api.grade_sheets.getGradesByPeriodSubject(
           levelId,
           selectedSubjectId,
           null,
           academicYear.name
         );
-        const studentGrades = data.filter((grade) => grade.student_id === student.id);
+        const data = Array.isArray(result) ? result : [];
+        const studentGrades = data.filter((grade: any) => grade.student_id === student.id);
         setExistingGrades(studentGrades);
         const initialGrades = studentGrades.reduce(
-          (acc, grade) => ({
+          (acc, grade: GradeSheetEntry) => ({
             ...acc,
             [grade.period_id!]: grade.score || null,
           }),

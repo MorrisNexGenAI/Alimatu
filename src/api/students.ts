@@ -1,10 +1,10 @@
 import axios from 'axios';
 import { BASE_URL } from './config';
+import type { Student, PaginatedResponse, StudentEnrollmentData } from '../types';
 
-import type { Student, PaginatedResponse } from '../types';
 export const getStudents = async (params: { level_id: number; } | { level_id?: undefined; }): Promise<Student[]> => {
-  const response = await axios.get(`${BASE_URL}/api/students/`);
-  return response.data;
+  const response = await axios.get(`${BASE_URL}/api/students/`, { params });
+  return response.data.results || [];
 };
 
 export const getStudentsByLevel = async (levelId: number, academicYear: string): Promise<Student[]> => {
@@ -29,16 +29,37 @@ export const getStudentsByLevel = async (levelId: number, academicYear: string):
   }
 };
 
-export const addStudent = async (data: {
-  firstName: string;
-  lastName: string;
-  gender: 'M' | 'F' | 'O';
-  dob: string;
-  level: number;
-  academic_year: number;
-}): Promise<Student> => {
-  const response = await axios.post(`${BASE_URL}/api/students/`, data);
-  return response.data;
+export const addStudentAndEnroll = async (data: StudentEnrollmentData): Promise<Student> => {
+  try {
+    // Create student
+    const studentResponse = await axios.post(`${BASE_URL}/api/students/`, {
+      firstName: data.firstName,
+      lastName: data.lastName,
+      gender: data.gender,
+      dob: data.dob,
+    });
+    const newStudent: Student = studentResponse.data;
+    console.log('Add Student Response:', JSON.stringify(newStudent, null, 2));
+
+    // Create enrollment
+    const enrollmentResponse = await axios.post(`${BASE_URL}/api/enrollments/`, {
+      student: newStudent.id,
+      level: data.level_id,
+      academic_year: data.academic_year_id,
+      date_enrolled: data.date_enrolled,
+      enrollment_status: 'ENROLLED',
+    });
+    console.log('Add Enrollment Response:', JSON.stringify(enrollmentResponse.data, null, 2));
+
+    return newStudent;
+  } catch (error: any) {
+    console.error('Add Student and Enroll Error:', JSON.stringify({
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+    }, null, 2));
+    throw error;
+  }
 };
 
 export const updateStudent = async (id: number, data: {

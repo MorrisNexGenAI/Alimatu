@@ -60,7 +60,7 @@ export const useGradeManagement = () => {
         const [studentData, subjectData, gradesheetData] = await Promise.all([
           api.students.getStudentsByLevel(selectedLevelId, academicYear.name),
           api.subjects.getSubjectsByLevel(selectedLevelId),
-          api.grade_sheets.getGradeSheetsByLevel(selectedLevelId, academicYear.name),
+          api.grade_sheets.getGradesByLevel(selectedLevelId),
         ]);
         setStudents(studentData);
         setSubjects(subjectData);
@@ -100,7 +100,7 @@ export const useGradeManagement = () => {
     if (selectedLevelId && selectedAcademicYearId) {
       const academicYear = academicYears.find((ay) => ay.id === selectedAcademicYearId);
       if (academicYear) {
-        api.grade_sheets.getGradeSheetsByLevel(selectedLevelId, academicYear.name)
+        api.grade_sheets.getGradesByLevel(selectedLevelId)
           .then((data) => setGradeSheets(data))
           .catch((err) => toast.error('Failed to refresh gradesheets'));
       }

@@ -8,7 +8,7 @@ export interface Grade {
 }
 
 export interface GradeSheetEntry {
-  student: Student; // Stricter type instead of 'any'
+  student: Student;
   id?: number;
   student_id: number;
   student_name: string;
@@ -18,16 +18,14 @@ export interface GradeSheetEntry {
 }
 
 export interface Subject {
-  subject: any;
   id: number;
-  name: string; // Use 'name' instead of 'subject'
-  level_id: number; // Replace 'level: any'
+  subject: string;
+  level_id: number;
 }
 
 export interface Period {
-  period: any;
   id: number;
-  name: string; // Use 'name' instead of 'period'
+  period: string;
 }
 
 export interface Level {
@@ -43,8 +41,8 @@ export interface Student {
   gender: 'M' | 'F' | 'O';
   dob: string;
   level_id: number;
-  level: number | { id: number; name: string } | null; // Adjusted to match API response
-  academic_year: number | { id: number; name: string }; // Adjusted to match API response
+  level: number | { id: number; name: string } | null;
+  academic_year: number | { id: number; name: string };
 }
 
 export interface AcademicYear {
@@ -60,6 +58,7 @@ export interface PaginatedResponse<T> {
   previous: string | null;
   results: T[];
 }
+
 export interface GradeSheet {
   student_id: number;
   student_name: string;
@@ -93,6 +92,7 @@ export interface Enrollment {
   student: Student;
   level: Level;
   academic_year: AcademicYear;
+  date_enrolled: string;
 }
 
 export interface PassFailedStatus {
@@ -112,4 +112,42 @@ export interface PassFailedStatus {
   status: 'PASS' | 'FAIL' | 'CONDITIONAL' | 'PENDING' | 'INCOMPLETE';
   validated_by?: string;
   template_name?: string;
+}
+
+export interface GradeEntry {
+  student_id: number;
+  score: number | null;
+  period_id: number;
+}
+
+export interface PostGradesData {
+  level: number;
+  subject_id: number;
+  period_id: number;
+  academic_year: string;
+  grades: GradeEntry[];
+}
+
+export interface GradeResponse {
+  message: string;
+  saved_grades: number[];
+  skipped_students: number[];
+  errors: { student_id: number; error: string }[];
+}
+
+export interface ExistingGrade {
+  student_id: number;
+  student_name: string;
+  score: number | null;
+  period_id: number;
+}
+
+export interface StudentEnrollmentData {
+  firstName: string;
+  lastName: string;
+  gender: 'M' | 'F' | 'O';
+  dob: string;
+  level_id: number;
+  academic_year_id: number;
+  date_enrolled: string;
 }

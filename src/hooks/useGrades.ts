@@ -1,9 +1,9 @@
 import { useState, useCallback } from 'react';
 import { api } from '../api';
-import type { GradeSheets } from '../api/grade_sheets';
+import type { GradeSheet } from '../types/index';
 
 export const useGrades = () => {
-  const [gradesheets, setGradesheets] = useState<GradeSheets[]>([]);
+  const [gradesheets, setGradesheets] = useState<GradeSheet[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

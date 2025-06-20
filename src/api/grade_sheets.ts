@@ -93,3 +93,15 @@ export const grade_sheets = {
     }
   },
 };
+
+export function getGradesByPeriodSubject(levelId: number, selectedSubjectId: number, arg2: null, name: string) {
+  throw new Error('Function not implemented.');
+}
+export function getGradesByLevel(arg0: number) {
+  throw new Error('Function not implemented.');
+}
+
+export function postGrades(gradeData: { level: number; subject_id: number; academic_year: string; grades: { student_id: number; score: number; period_id: number; }[]; }) {
+  throw new Error('Function not implemented.');
+}
+

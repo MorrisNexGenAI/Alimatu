@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useRefresh } from '../context/RefreshContext';
 import { api } from '../api';
-import type { Level, Student, AcademicYear, GradeSheet } from '../types';
+import { type Level, type Student, type AcademicYear, type GradeSheet, type Subject, Period } from '../types';
 import { grade_sheets } from '../api/grade_sheets';
 
 interface Errors {
@@ -10,6 +10,8 @@ interface Errors {
   academicYears?: string;
   students?: string;
   grades?: string;
+  periods?:string;
+  subject?:string;
 }
 
 interface PdfLoading {
@@ -23,8 +25,12 @@ interface PdfUrls {
 export const useGradeSheets = () => {
   const { refresh, setRefresh } = useRefresh();
   const [levels, setLevels] = useState<Level[]>([]);
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [periods, setPeriods] = useState<Period[]>([]);
   const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
   const [selectedLevelId, setSelectedLevelId] = useState<number | null>(null);
+  const [selectedPeriodId, setSelectPeriodId] = useState<number | null>(null);
+  const [selectedSubjectId, setSelectedSubjectId] = useState<number | null>(null);
   const [selectedAcademicYearId, setSelectedAcademicYearId] = useState<number | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
   const [gradeSheets, setGradeSheets] = useState<GradeSheet[]>([]);
@@ -38,27 +44,34 @@ export const useGradeSheets = () => {
       setLoading(true);
       setErrors({});
       try {
-        const [levelData, academicYearData] = await Promise.all([
+        const [levelData, academicYearData, periodData, subjectData] = await Promise.all([
           api.levels.getLevels(),
           api.academic_years.getAcademicYears(),
+          api.periods.getPeriods(),
+          api.subjects.getSubjects(),
         ]);
         console.log('Raw Levels Response:', JSON.stringify(levelData, null, 2));
         console.log('Raw Academic Years Response:', JSON.stringify(academicYearData, null, 2));
+        console.log('Raw periods Response:', JSON.stringify(periodData, null, 2));
+        console.log('Raw Subjects Response:', JSON.stringify(subjectData, null, 2));
 
-        if (!Array.isArray(levelData) || !Array.isArray(academicYearData)) {
-          throw new Error('Invalid response format for levels or academic years');
+        if (!Array.isArray(levelData) || !Array.isArray(academicYearData) || !Array.isArray(periodData) || !Array.isArray(subjectData)) {
+          throw new Error('Invalid response format for levels or academic years or periods or subjects');
         }
 
         setLevels(levelData);
         setAcademicYears(academicYearData);
+        setPeriods(periodData);
+        setSubjects(subjectData);
+
         const currentYear = academicYearData.find((year) => year.name === '2025/2026');
         setSelectedAcademicYearId(currentYear?.id || (academicYearData.length > 0 ? academicYearData[0].id : null));
         console.log('Selected Academic Year ID:', currentYear?.id || academicYearData[0]?.id);
       } catch (err: any) {
         const message = err.message || 'Failed to load initial data';
-        console.error('Initial Fetch Error:', JSON.stringify({ message, stack: err.stack }, null, 2));
+        console.error('Initial Fetch Error:', JSON.stringify({ message, stack: err.stack }, null, 4));
         toast.error(message);
-        setErrors({ levels: 'Failed to load levels', academicYears: 'Failed to load academic years' });
+        setErrors({ levels: 'Failed to load levels', academicYears: 'Failed to load academic years', periods: 'Failed to load periods', subject:'Failed to load subjects'});
         setLevels([]);
         setAcademicYears([]);
       } finally {
@@ -69,7 +82,7 @@ export const useGradeSheets = () => {
   }, []);
 
   useEffect(() => {
-    if (!selectedLevelId || !selectedAcademicYearId) {
+    if (!selectedLevelId || !selectedPeriodId ||!selectedSubjectId || !selectedAcademicYearId) {
       setStudents([]);
       setGradeSheets([]);
       setPdfUrls({});
