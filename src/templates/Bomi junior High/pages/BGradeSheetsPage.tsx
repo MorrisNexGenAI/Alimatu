@@ -1,6 +1,8 @@
+
 import React from 'react';
 import { useGradeSheets } from '../../../hooks/useGradeSheets';
 import Select from '../../../components/common/Select';
+import GradeSheetTable from '../../../components/grade_sheets/GradeSheetTable';
 import BomiTheme from '../bomi';
 import '../styles/b_gradesheets.css';
 
@@ -8,17 +10,15 @@ const BGradeSheetsPage: React.FC = () => {
   const {
     levels,
     academicYears,
+    subjects,
+    periods,
     selectedLevelId,
     selectedAcademicYearId,
-    students,
     gradeSheets,
     loading,
-    pdfLoading,
     errors,
-    pdfUrls,
     handleLevelChange,
     handleAcademicYearChange,
-    handleGeneratePDF,
   } = useGradeSheets();
 
   if (loading && !selectedLevelId && !selectedAcademicYearId) {
@@ -65,117 +65,41 @@ const BGradeSheetsPage: React.FC = () => {
           />
         </div>
 
-        {selectedLevelId && selectedAcademicYearId && (
-          <div className="mt-4">
-            <button
-              className="b-generate-btn p-2 bg-blue-500 text-white rounded flex items-center"
-              onClick={() => handleGeneratePDF(selectedLevelId)}
-              disabled={loading || pdfLoading[`level_${selectedLevelId}`]}
-            >
-              {pdfLoading[`level_${selectedLevelId}`] ? (
-                <>
-                  <span className="animate-spin mr-2">⌀</span>
-                  Generating...
-                </>
-              ) : (
-                'Generate PDF for Level'
-              )}
-            </button>
-            {pdfUrls[`level_${selectedLevelId}`] && (
-              <p className="mt-2">
-                <a
-                  href={pdfUrls[`level_${selectedLevelId}`]}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 underline"
-                >
-                  View Level PDF
-                </a>
-              </p>
-            )}
-          </div>
-        )}
-
         {selectedLevelId && selectedAcademicYearId && !loading && (
           <div>
-            {students.length > 0 ? (
-              students.map((student) => {
-                const gradeSheet = gradeSheets.find((sheet) => sheet.student_id === student.id) || {
-                  student_id: student.id,
-                  student_name: `${student.firstName} ${student.lastName}`,
-                  subjects: [],
-                };
-                return (
-                  <div key={student.id} className="mb-6">
-                    <h3 className="b-student-title">{gradeSheet.student_name}'s Grade Sheet</h3>
-                    <button
-                      className="b-generate-btn p-2 bg-gray-500 text-white rounded flex items-center"
-                      onClick={() => handleGeneratePDF(selectedLevelId, student.id)}
-                      disabled={loading || pdfLoading[`student_${student.id}`]}
-                    >
-                      {pdfLoading[`student_${student.id}`] ? (
-                        <>
-                          <span className="animate-spin mr-2">⌀</span>
-                          Generating...
-                        </>
-                      ) : (
-                        `Generate PDF for ${student.firstName} ${student.lastName}`
-                      )}
-                    </button>
-                    {pdfUrls[`student_${student.id}`] && (
-                      <p className="mt-2">
-                        <a
-                          href={pdfUrls[`student_${student.id}`]}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 underline"
-                        >
-                          View Student PDF
-                        </a>
-                      </p>
-                    )}
-                    <table className="w-full border-collapse">
-                      <thead>
-                        <tr className="bg-gray-200">
-                          <th className="border p-2">Subjects</th>
-                          <th className="border p-2">1st Period</th>
-                          <th className="border p-2">2nd Period</th>
-                          <th className="border p-2">3rd Period</th>
-                          <th className="border p-2">1st Exam</th>
-                          <th className="border p-2">1st Semester Avg</th>
-                          <th className="border p-2">4th Period</th>
-                          <th className="border p-2">5th Period</th>
-                          <th className="border p-2">6th Period</th>
-                          <th className="border p-2">2nd Exam</th>
-                          <th className="border p-2">2nd Semester Avg</th>
-                          <th className="border p-2">Final Avg</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {gradeSheet.subjects.map((subjectData) => (
-                          <tr key={subjectData.subject_id} className="border">
-                            <td className="p-2">{subjectData.subject_name}</td>
-                            <td className="p-2 text-center">{subjectData['1st'] || '-'}</td>
-                            <td className="p-2 text-center">{subjectData['2nd'] || '-'}</td>
-                            <td className="p-2 text-center">{subjectData['3rd'] || '-'}</td>
-                            <td className="p-2 text-center">{subjectData['1exam'] || '-'}</td>
-                            <td className="p-2 text-center">{subjectData.sem1_avg || '-'}</td>
-                            <td className="p-2 text-center">{subjectData['4th'] || '-'}</td>
-                            <td className="p-2 text-center">{subjectData['5th'] || '-'}</td>
-                            <td className="p-2 text-center">{subjectData['6th'] || '-'}</td>
-                            <td className="p-2 text-center">{subjectData['2exam'] || '-'}</td>
-                            <td className="p-2 text-center">{subjectData.sem2_avg || '-'}</td>
-                            <td className="p-2 text-center">{subjectData.final_avg || '-'}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+            {gradeSheets.length > 0 ? (
+              <div>
+                {gradeSheets.map((sheet) => (
+                  <div key={sheet.student_id} className="mb-6">
+                    <h3 className="b-gradesheet-title">{sheet.student_name}'s Gradesheet</h3>
+                    <GradeSheetTable
+                      gradesheets={[{
+                        ...sheet,
+                        subjects: sheet.subjects.map(subj => ({
+                          subject_id: subj.subject_id,
+                          subject_name: subj.subject_name,
+                          first_period: subj['1st']?.toString() ?? '',
+                          second_period: subj['2nd']?.toString() ?? '',
+                          third_period: subj['3rd']?.toString() ?? '',
+                          first_exam: subj['1exam']?.toString() ?? '',
+                          fourth_period: subj['4th']?.toString() ?? '',
+                          fifth_period: subj['5th']?.toString() ?? '',
+                          sixth_period: subj['6th']?.toString() ?? '',
+                          second_exam: subj['2exam']?.toString() ?? '',
+                          sem1_avg: subj['1s']?.toString() ?? '',
+                          sem2_avg: subj['2s']?.toString() ?? '',
+                          final_avg: subj['f']?.toString() ?? '',
+                        }))
+                      }]}
+                      subjects={subjects}
+                      periods={periods}
+                    />
                   </div>
-                );
-              })
+                ))}
+              </div>
             ) : (
               <p className="b-gradesheet-message">
-                {errors.students || errors.grades || 'No students found for this level and academic year'}
+                {errors.grades || errors.students || 'No gradesheets found for this level and academic year'}
               </p>
             )}
           </div>

@@ -1,25 +1,32 @@
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import { BASE_URL } from './config';
 import type { Subject, PaginatedResponse } from '../types';
 
-export const getSubjects = async (): Promise<Subject[]> => {
-  try {
-    const response = await axios.get(`${BASE_URL}/api/subjects/`);
-    console.log('Raw Subjects API Response:', JSON.stringify(response.data, null, 2));
-    const data = response.data as PaginatedResponse<Subject>;
-    if (!Array.isArray(data.results)) {
-      throw new Error(`Expected array in results, got ${typeof data.results}`);
+export const getSubjects = async (levelId?: number): Promise<Subject[]> => {
+    try {
+      const response: AxiosResponse<PaginatedResponse<Subject> | Subject[]> = await axios.get(`${BASE_URL}/api/subjects/`, {
+        params: levelId ? { level_id: levelId } : {},
+      });
+      console.log('Raw Subjects API Response:', JSON.stringify(response.data, null, 2));
+      let data: Subject[];
+      if (Array.isArray(response.data)) {
+        data = response.data;
+      } else if (response.data && typeof response.data === 'object' && Array.isArray(response.data.results)) {
+        data = response.data.results;
+      } else {
+        console.error('Invalid subjects response format:', JSON.stringify(response.data, null, 2));
+        return [];
+      }
+      return data;
+    } catch (error: any) {
+      console.error('Fetch Subjects Error:', JSON.stringify({
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      }, null, 2));
+      return [];
     }
-    return data.results;
-  } catch (error: any) {
-    console.error('Fetch Subjects Error:', JSON.stringify({
-      message: error.message,
-      response: error.response?.data,
-      status: error.response?.status,
-    }, null, 2));
-    throw error;
-  }
-};
+  };
 
 export const getSubjectsByLevel = async (levelId: number): Promise<Subject[]> => {
   try {

@@ -63,27 +63,31 @@ export interface GradeSheet {
   student_id: number;
   student_name: string;
   subjects: {
-    first_period: string;
-    second_period: string;
-    third_period: string;
-    first_exam: string;
-    fourth_period: string;
-    fifth_period: string;
-    sixth_period: string;
-    second_exam: string;
-    subject_id: number;
+    subject_id: string;
     subject_name: string;
-    '1st'?: number | string;
-    '2nd'?: number | string;
-    '3rd'?: number | string;
-    '1exam'?: number | string;
-    sem1_avg?: number | string;
-    '4th'?: number | string;
-    '5th'?: number | string;
-    '6th'?: number | string;
-    '2exam'?: number | string;
-    sem2_avg?: number | string;
-    final_avg?: number | string;
+    first_period?: string;
+    second_period?: string;
+    third_period?: string;
+    first_exam?: string;
+    fourth_period?: string;
+    fifth_period?: string;
+    sixth_period?: string;
+    second_exam?: string;
+    sem1_avg?: string;
+    sem2_avg?: string;
+    final_avg?: string;
+    // Backend fields
+    '1st'?: number | null;
+    '2nd'?: number | null;
+    '3rd'?: number | null;
+    '1exam'?: number | null;
+    '4th'?: number | null;
+    '5th'?: number | null;
+    '6th'?: number | null;
+    '2exam'?: number | null;
+    '1s'?: number | null;
+    '2s'?: number | null;
+    'f'?: number | null;
   }[];
 }
 
@@ -150,4 +154,10 @@ export interface StudentEnrollmentData {
   level_id: number;
   academic_year_id: number;
   date_enrolled: string;
+}
+
+export interface PdfResponse {
+  view_url: string;
+  message?: string;
+  pdf_path?: string;
 }

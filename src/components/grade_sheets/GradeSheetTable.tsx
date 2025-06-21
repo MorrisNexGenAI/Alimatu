@@ -1,6 +1,5 @@
-// C:\Users\USER\Desktop\GradeSheet\SchoolGradesSystem\src\components\grade_sheets\GradeSheetTable.tsx
+
 import React from 'react';
-import type { GradeSheets } from '../../api/grade_sheets';
 import type { Subject, Period, GradeSheet } from '../../types';
 
 interface GradeSheetTableProps {
@@ -10,18 +9,27 @@ interface GradeSheetTableProps {
 }
 
 const GradeSheetTable: React.FC<GradeSheetTableProps> = ({ gradesheets, subjects }) => {
-  const fixedSubjects = subjects.map((s) => s.subject); // Use subjects from API
-
   const handlePrint = () => {
     window.print();
   };
 
+  if (!gradesheets.length) {
+    return <p>No gradesheet data available</p>;
+  }
+
+  // Use transformed subjects directly from gradesheets
+  const fixedSubjects = gradesheets[0].subjects.map((s) => ({
+    id: Number(s.subject_id), // Convert string to number
+    name: s.subject_name,
+  }));
+
+  if (!fixedSubjects.length) {
+    return <p>No subjects available for this student</p>;
+  }
+
   return (
     <div className="b-gradesheet-table-container">
-      <button
-        className="b-print-button"
-        onClick={handlePrint}
-      >
+      <button className="b-print-button" onClick={handlePrint}>
         Print Grade Sheet
       </button>
       <table className="w-full border-collapse">
@@ -42,35 +50,36 @@ const GradeSheetTable: React.FC<GradeSheetTableProps> = ({ gradesheets, subjects
           </tr>
         </thead>
         <tbody>
-          {fixedSubjects.map((subjectName) => {
-            const subjectData = gradesheets[0]?.subjects.find((s) => s.subject_name === subjectName) || {
-              subject_name: subjectName,
-              '1st': null,
-              '2nd': null,
-              '3rd': null,
-              '1exam': null,
-              '4th': null,
-              '5th': null,
-              '6th': null,
-              '2exam': null,
-              sem1_avg: null,
-              sem2_avg: null,
-              final_avg: null,
+          {fixedSubjects.map(({ id, name }) => {
+            const subjectData = gradesheets[0].subjects.find((s) => Number(s.subject_id) === id) || {
+              subject_id: id.toString(),
+              subject_name: name,
+              first_period: '',
+              second_period: '',
+              third_period: '',
+              first_exam: '',
+              fourth_period: '',
+              fifth_period: '',
+              sixth_period: '',
+              second_exam: '',
+              sem1_avg: '',
+              sem2_avg: '',
+              final_avg: '',
             };
             return (
-              <tr key={subjectName} className="border">
+              <tr key={id} className="border">
                 <td className="p-2">{subjectData.subject_name}</td>
-                <td className="p-2 text-center">{subjectData['1st'] ?? '-'}</td>
-                <td className="p-2 text-center">{subjectData['2nd'] ?? '-'}</td>
-                <td className="p-2 text-center">{subjectData['3rd'] ?? '-'}</td>
-                <td className="p-2 text-center">{subjectData['1exam'] ?? '-'}</td>
-                <td className="p-2 text-center">{subjectData.sem1_avg ?? '-'}</td>
-                <td className="p-2 text-center">{subjectData['4th'] ?? '-'}</td>
-                <td className="p-2 text-center">{subjectData['5th'] ?? '-'}</td>
-                <td className="p-2 text-center">{subjectData['6th'] ?? '-'}</td>
-                <td className="p-2 text-center">{subjectData['2exam'] ?? '-'}</td>
-                <td className="p-2 text-center">{subjectData.sem2_avg ?? '-'}</td>
-                <td className="p-2 text-center">{subjectData.final_avg ?? '-'}</td>
+                <td className="p-2 text-center">{subjectData.first_period || '-'}</td>
+                <td className="p-2 text-center">{subjectData.second_period || '-'}</td>
+                <td className="p-2 text-center">{subjectData.third_period || '-'}</td>
+                <td className="p-2 text-center">{subjectData.first_exam || '-'}</td>
+                <td className="p-2 text-center">{subjectData.sem1_avg || '-'}</td>
+                <td className="p-2 text-center">{subjectData.fourth_period || '-'}</td>
+                <td className="p-2 text-center">{subjectData.fifth_period || '-'}</td>
+                <td className="p-2 text-center">{subjectData.sixth_period || '-'}</td>
+                <td className="p-2 text-center">{subjectData.second_exam || '-'}</td>
+                <td className="p-2 text-center">{subjectData.sem2_avg || '-'}</td>
+                <td className="p-2 text-center">{subjectData.final_avg || '-'}</td>
               </tr>
             );
           })}
