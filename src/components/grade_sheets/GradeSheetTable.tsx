@@ -1,90 +1,123 @@
 
 import React from 'react';
-import type { Subject, Period, GradeSheet } from '../../types';
+import GradeAverageCalculator from './GradeAvgCalculator';
+import type { GradeSheet } from '../../types';
 
 interface GradeSheetTableProps {
   gradesheets: GradeSheet[];
-  subjects: Subject[];
-  periods: Period[];
 }
 
-const GradeSheetTable: React.FC<GradeSheetTableProps> = ({ gradesheets, subjects }) => {
+const periodMap: { [key: string]: string } = {
+  '1st': 'first_period',
+  '2nd': 'second_period',
+  '3rd': 'third_period',
+  '1exam': 'first_exam',
+  '4th': 'fourth_period',
+  '5th': 'fifth_period',
+  '6th': 'sixth_period',
+  '2exam': 'second_exam',
+  '1a': 'sem1_avg',
+  '2a': 'sem2_avg',
+  'f': 'final_avg',
+};
+
+const GradeSheetTable: React.FC<GradeSheetTableProps> = ({ gradesheets }) => {
   const handlePrint = () => {
     window.print();
   };
 
+  console.log('Raw GradeSheets Input:', JSON.stringify(gradesheets, null, 2));
+
   if (!gradesheets.length) {
-    return <p>No gradesheet data available</p>;
+    return <p className="text-warning mt-4">No gradesheet data available</p>;
   }
 
-  // Use transformed subjects directly from gradesheets
   const fixedSubjects = gradesheets[0].subjects.map((s) => ({
-    id: Number(s.subject_id), // Convert string to number
+    id: s.subject_id,
     name: s.subject_name,
   }));
 
+  console.log('Fixed Subjects:', JSON.stringify(fixedSubjects, null, 2));
+
   if (!fixedSubjects.length) {
-    return <p>No subjects available for this student</p>;
+    return <p className="text-warning mt-4">No subjects available for this student</p>;
   }
 
   return (
     <div className="b-gradesheet-table-container">
-      <button className="b-print-button" onClick={handlePrint}>
-        Print Grade Sheet
-      </button>
-      <table className="w-full border-collapse">
-        <thead>
-          <tr className="bg-gray-200">
-            <th className="border p-2">Subjects</th>
-            <th className="border p-2">1st Period</th>
-            <th className="border p-2">2nd Period</th>
-            <th className="border p-2">3rd Period</th>
-            <th className="border p-2">1st Semester Exam</th>
-            <th className="border p-2">1st Semester Avg</th>
-            <th className="border p-2">4th Period</th>
-            <th className="border p-2">5th Period</th>
-            <th className="border p-2">6th Period</th>
-            <th className="border p-2">Final Exam</th>
-            <th className="border p-2">2nd Semester Avg</th>
-            <th className="border p-2">Final Avg</th>
-          </tr>
-        </thead>
-        <tbody>
-          {fixedSubjects.map(({ id, name }) => {
-            const subjectData = gradesheets[0].subjects.find((s) => Number(s.subject_id) === id) || {
-              subject_id: id.toString(),
-              subject_name: name,
-              first_period: '',
-              second_period: '',
-              third_period: '',
-              first_exam: '',
-              fourth_period: '',
-              fifth_period: '',
-              sixth_period: '',
-              second_exam: '',
-              sem1_avg: '',
-              sem2_avg: '',
-              final_avg: '',
-            };
-            return (
-              <tr key={id} className="border">
-                <td className="p-2">{subjectData.subject_name}</td>
-                <td className="p-2 text-center">{subjectData.first_period || '-'}</td>
-                <td className="p-2 text-center">{subjectData.second_period || '-'}</td>
-                <td className="p-2 text-center">{subjectData.third_period || '-'}</td>
-                <td className="p-2 text-center">{subjectData.first_exam || '-'}</td>
-                <td className="p-2 text-center">{subjectData.sem1_avg || '-'}</td>
-                <td className="p-2 text-center">{subjectData.fourth_period || '-'}</td>
-                <td className="p-2 text-center">{subjectData.fifth_period || '-'}</td>
-                <td className="p-2 text-center">{subjectData.sixth_period || '-'}</td>
-                <td className="p-2 text-center">{subjectData.second_exam || '-'}</td>
-                <td className="p-2 text-center">{subjectData.sem2_avg || '-'}</td>
-                <td className="p-2 text-center">{subjectData.final_avg || '-'}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <h1 className="mb-0">Gradesheet for {gradesheets[0].student_name} (Status: {gradesheets[0].status || 'PENDING'})</h1>
+        <button className="b-print-button btn btn-info" onClick={handlePrint}>
+          Print Grade Sheet
+        </button>
+      </div>
+      <div className="table-responsive">
+        <table className="table table-bordered table-hover w-full border-collapse">
+          <thead className="table-light">
+            <tr>
+              <th scope="col" className="border p-2">Subject</th>
+              <th scope="col" className="border p-2">1st Period</th>
+              <th scope="col" className="border p-2">2nd Period</th>
+              <th scope="col" className="border p-2">3rd Period</th>
+              <th scope="col" className="border p-2">1st Semester Exam</th>
+              <th scope="col" className="border p-2">1st Semester Avg </th>
+              <th scope="col" className="border p-2">4th Period</th>
+              <th scope="col" className="border p-2">5th Period</th>
+              <th scope="col" className="border p-2">6th Period</th>
+              <th scope="col" className="border p-2">2nd Semester Exam</th>
+              <th scope="col" className="border p-2">2nd Semester Avg </th>
+              <th scope="col" className="border p-2">Final Avg </th>
+            </tr>
+          </thead>
+          <tbody>
+            {fixedSubjects.map(({ id, name }) => {
+              const subjectData = gradesheets[0].subjects.find((s) => s.subject_id === id) || {
+                subject_id: id,
+                subject_name: name,
+                '1st': '-',
+                '2nd': '-',
+                '3rd': '-',
+                '1exam': '-',
+                '1a': '-',
+                '4th': '-',
+                '5th': '-',
+                '6th': '-',
+                '2exam': '-',
+                '2a': '-',
+                'f': '-',
+              };
+              console.log(`Raw Subject Data for ${name}:`, JSON.stringify(subjectData, null, 2));
+              // Calculate averages using GradeAverageCalculator
+              const calculatedSubject = (
+                <GradeAverageCalculator subject={subjectData} />
+              ).props.subject as { [key: string]: string };
+              // Map backend keys to frontend keys
+              const mappedData = Object.keys(calculatedSubject).reduce((acc, key) => {
+                const mappedKey = periodMap[key] || key;
+                acc[mappedKey] = calculatedSubject[key] || '-';
+                return acc;
+              }, {} as { [key: string]: string });
+              console.log(`Mapped Data for subject ${name}:`, JSON.stringify(mappedData, null, 2));
+              return (
+                <tr key={id} className="border">
+                  <td className="p-2">{mappedData.subject_name}</td>
+                  <td className="p-2 text-center">{mappedData.first_period}</td>
+                  <td className="p-2 text-center">{mappedData.second_period}</td>
+                  <td className="p-2 text-center">{mappedData.third_period}</td>
+                  <td className="p-2 text-center">{mappedData.first_exam}</td>
+                  <td className="p-2 text-center">{mappedData.sem1_avg}</td>
+                  <td className="p-2 text-center">{mappedData.fourth_period}</td>
+                  <td className="p-2 text-center">{mappedData.fifth_period}</td>
+                  <td className="p-2 text-center">{mappedData.sixth_period}</td>
+                  <td className="p-2 text-center">{mappedData.second_exam}</td>
+                  <td className="p-2 text-center">{mappedData.sem2_avg}</td>
+                  <td className="p-2 text-center">{mappedData.final_avg}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };

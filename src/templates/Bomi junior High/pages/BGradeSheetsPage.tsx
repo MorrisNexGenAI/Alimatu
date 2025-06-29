@@ -86,8 +86,8 @@ const BGradeSheetsPage: React.FC = () => {
                           fifth_period: subj['5th']?.toString() ?? '',
                           sixth_period: subj['6th']?.toString() ?? '',
                           second_exam: subj['2exam']?.toString() ?? '',
-                          sem1_avg: subj['1s']?.toString() ?? '',
-                          sem2_avg: subj['2s']?.toString() ?? '',
+                          sem1_avg: subj['1a']?.toString() ?? '',
+                          sem2_avg: subj['2a']?.toString() ?? '',
                           final_avg: subj['f']?.toString() ?? '',
                         }))
                       }]}

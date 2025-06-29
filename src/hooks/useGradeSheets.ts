@@ -1,10 +1,9 @@
-
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useRefresh } from '../context/RefreshContext';
 import { api } from '../api';
 import { grade_sheets } from '../api/grade_sheets';
-import { type Level, type Student, type AcademicYear, type GradeSheet, type Subject, type Period, type PaginatedResponse } from '../types';
+import { type Level, type Student, type AcademicYear, type UseGradeSheetsReturn, type GradeSheet, type Subject, type Period, type PaginatedResponse, PdfLoading, PdfUrls } from '../types';
 
 interface Errors {
   levels?: string;
@@ -15,33 +14,6 @@ interface Errors {
   subject?: string;
 }
 
-interface PdfLoading {
-  [key: string]: boolean;
-}
-
-interface PdfUrls {
-  [key: string]: string;
-}
-
-interface UseGradeSheetsReturn {
-  levels: Level[];
-  academicYears: AcademicYear[];
-  subjects: Subject[];
-  periods: Period[];
-  selectedLevelId: number | null;
-  selectedAcademicYearId: number | null;
-  selectedSubjectId: number | null;
-  selectedPeriodId: number | null;
-  students: Student[];
-  gradeSheets: GradeSheet[];
-  loading: boolean;
-  pdfLoading: PdfLoading;
-  errors: Errors;
-  pdfUrls: PdfUrls;
-  handleLevelChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
-  handleAcademicYearChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
-  handleGeneratePDF: (levelId: number, studentId?: number) => Promise<void>;
-}
 
 export const useGradeSheets = (): UseGradeSheetsReturn => {
   const { refresh, setRefresh } = useRefresh();
@@ -65,11 +37,10 @@ export const useGradeSheets = (): UseGradeSheetsReturn => {
       setLoading(true);
       setErrors({});
       try {
-        const [levelResponse, academicYearResponse, periodResponse, subjectResponse] = await Promise.all([
+        const [levelResponse, academicYearResponse, periodResponse] = await Promise.all([
           api.levels.getLevels(),
           api.academic_years.getAcademicYears(),
           api.periods.getPeriods(),
-          api.subjects.getSubjects(), // Fetch all subjects initially
         ]);
 
         let levelData: Level[] = [];
@@ -102,32 +73,22 @@ export const useGradeSheets = (): UseGradeSheetsReturn => {
           throw new Error('Invalid periods response format');
         }
 
-        let subjectData: Subject[] = [];
-        if (Array.isArray(subjectResponse)) {
-          subjectData = subjectResponse;
-        } else if (subjectResponse && typeof subjectResponse === 'object' && Array.isArray(subjectResponse.results)) {
-          subjectData = subjectResponse.results;
-        } else {
-          console.warn('Unexpected subjectResponse format:', JSON.stringify(subjectResponse, null, 2));
-          throw new Error('Invalid subjects response format');
-        }
-
         console.log('Processed Levels:', JSON.stringify(levelData, null, 2));
         console.log('Processed Academic Years:', JSON.stringify(academicYearData, null, 2));
         console.log('Processed Periods:', JSON.stringify(periodData, null, 2));
-        console.log('Processed Subjects:', JSON.stringify(subjectData, null, 2));
 
         setLevels(levelData);
         setAcademicYears(academicYearData);
         setPeriods(periodData);
-        setSubjects(subjectData);
 
         const currentYear = academicYearData.find((year) => year.name === '2024/2025');
         setSelectedAcademicYearId(currentYear?.id || academicYearData[0]?.id || null);
-        console.log('Selected Academic Year ID:', currentYear?.id || academicYearData[0]?.id);
+        if (levelData.length > 0) {
+          setSelectedLevelId(levelData[0].id);
+        }
       } catch (err: any) {
         const message = err.message || 'Failed to load initial data';
-        console.error('Initial Fetch Error:', JSON.stringify({ message, stack: err.stack }, null, 4));
+        console.error('Initial Fetch Error:', JSON.stringify({ message, stack: err.stack }, null, 2));
         toast.error(message);
         setErrors({ levels: 'Failed to load levels', academicYears: 'Failed to load academic years', periods: 'Failed to load periods', subject: 'Failed to load subjects' });
         setLevels([]);
@@ -145,9 +106,9 @@ export const useGradeSheets = (): UseGradeSheetsReturn => {
     if (!selectedLevelId || !selectedAcademicYearId) {
       setStudents([]);
       setGradeSheets([]);
+      setSubjects([]);
       setPdfUrls({});
       setErrors({});
-      setSubjects([]);
       return;
     }
 
@@ -160,28 +121,29 @@ export const useGradeSheets = (): UseGradeSheetsReturn => {
         const [studentResponse, gradesResponse, subjectResponse] = await Promise.all([
           api.students.getStudentsByLevel(selectedLevelId, academicYear),
           grade_sheets.getGradeSheetsByLevel(selectedLevelId, academicYear),
-          api.subjects.getSubjects(selectedLevelId), // Filter by level_id
+          api.subjects.getSubjects(selectedLevelId),
         ]);
         console.log('Raw Students Response:', JSON.stringify(studentResponse, null, 2));
         console.log('Raw GradeSheets Response:', JSON.stringify(gradesResponse, null, 2));
         console.log('Raw Subjects Response:', JSON.stringify(subjectResponse, null, 2));
 
         const studentsData = Array.isArray(studentResponse) ? studentResponse : [];
+        const gradesData = Array.isArray(gradesResponse) ? gradesResponse : [];
         const subjectData = Array.isArray(subjectResponse) ? subjectResponse : [];
+
         setStudents(studentsData);
-        setGradeSheets(gradesResponse);
+        setGradeSheets(gradesData);
         setSubjects(subjectData);
-        setErrors({});
 
         console.log('Students Set:', JSON.stringify(studentsData, null, 2));
-        console.log('GradeSheets Set:', JSON.stringify(gradesResponse, null, 2));
+        console.log('GradeSheets Set:', JSON.stringify(gradesData, null, 2));
         console.log('Subjects Set:', JSON.stringify(subjectData, null, 2));
 
         if (studentsData.length === 0) {
           console.warn('No students found for level_id:', selectedLevelId, 'academic_year:', academicYear);
           setErrors((prev) => ({ ...prev, students: 'No enrolled students found' }));
         }
-        if (!gradesResponse || gradesResponse.length === 0) {
+        if (gradesData.length === 0) {
           console.warn('No gradesheets found for level_id:', selectedLevelId, 'academic_year:', academicYear);
           setErrors((prev) => ({ ...prev, grades: 'No grades found for this level and academic year' }));
         }
@@ -190,7 +152,7 @@ export const useGradeSheets = (): UseGradeSheetsReturn => {
           setErrors((prev) => ({ ...prev, subject: 'No subjects found for this level' }));
         }
       } catch (err: any) {
-        const message = err.message || 'Failed to load level data';
+        const message = err.response?.data?.error || err.message || 'Failed to load level data';
         console.error('Fetch Level Data Error:', JSON.stringify({
           message,
           response: err.response?.data,
@@ -224,14 +186,14 @@ export const useGradeSheets = (): UseGradeSheetsReturn => {
 
   const handleGeneratePDF = async (levelId: number, studentId?: number) => {
     const key = studentId ? `student_${studentId}` : `level_${levelId}`;
-    setPdfLoading((prev) => ({ ...prev, [key]: true }));
+    setPdfLoading((prev: any) => ({ ...prev, [key]: true }));
     try {
       const academicYear = academicYears.find((ay) => ay.id === selectedAcademicYearId)?.name.replace('-', '/');
       if (!academicYear) throw new Error('Invalid academic year selected');
       const response = await grade_sheets.generatePDF(levelId, academicYear, studentId);
       console.log('PDF Response:', JSON.stringify(response, null, 2));
       if (!response.view_url) throw new Error('No PDF URL returned from server');
-      setPdfUrls((prev) => ({ ...prev, [key]: response.view_url }));
+      setPdfUrls((prev: any) => ({ ...prev, [key]: response.view_url }));
       window.open(response.view_url, '_blank');
       toast.success('PDF generated and opened!');
     } catch (err: any) {
@@ -242,7 +204,7 @@ export const useGradeSheets = (): UseGradeSheetsReturn => {
       }, null, 2));
       toast.error(`Failed to generate PDF: ${err.message || 'Unknown error'}`);
     } finally {
-      setPdfLoading((prev) => ({ ...prev, [key]: false }));
+      setPdfLoading((prev: any) => ({ ...prev, [key]: false }));
     }
   };
 

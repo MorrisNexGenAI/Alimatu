@@ -113,6 +113,22 @@ const Sidebar: React.FC = () => {
               )}
             </NavLink>
           </li>
+          <li>
+              <NavLink
+                to="/adminmanagement"
+                className={({ isActive }) =>
+                  isActive ? 'block p-2 rounded' : 'block p-2 hover:rounded'
+                }
+                style={{ color: '#008000' }}
+              >
+                {({ isActive }) => (
+                  <>
+                    <UserGroupIcon className="h-4 w-4 inline-block mr-2" /> {/* Reduced size */}
+                    {isActive ? <span className="font-bold">Admin Management </span> : 'Admin Management'}
+                  </>
+                )}
+              </NavLink>
+            </li>
           </ul>
         </nav>
       </aside>

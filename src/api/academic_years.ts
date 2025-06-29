@@ -20,3 +20,4 @@ export const getAcademicYears = async (): Promise<AcademicYear[]> => {
     throw error;
   }
 };
+

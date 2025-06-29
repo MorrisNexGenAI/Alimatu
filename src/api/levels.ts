@@ -21,3 +21,36 @@ export const getLevels = async (): Promise<Level[]> => {
     throw error;
   }
 };
+
+export const createLevel = async (data: {level: number }): Promise<Level> => {
+  try {
+    const response = await axios.post(`${BASE_URL}/api/levels/`, data, {
+      headers: { 'X-CSRFToken': document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '' },
+    });
+    console.log('Create Level Response:', JSON.stringify(response.data, null, 2));
+    return response.data;
+  } catch (error: any) {
+    console.error('Create Level Error:', JSON.stringify({
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+    }, null, 2));
+    throw error;
+  }
+};
+
+export const deleteLevel = async (id: number): Promise<void> => {
+  try {
+    await axios.delete(`${BASE_URL}/api/levels/${id}/`, {
+      headers: { 'X-CSRFToken': document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '' },
+    });
+    console.log(`Deleted Level ID: ${id}`);
+  } catch (error: any) {
+    console.error('Delete Level Error:', JSON.stringify({
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+    }, null, 2));
+    throw error;
+  }
+};

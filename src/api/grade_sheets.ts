@@ -102,3 +102,9 @@ export function printReportCard(selectedLevelId: number, academicYear: string, s
   throw new Error('Function not implemented.');
 }
 
+
+export function getGradesByLevel(selectedLevelId: number) {
+  throw new Error('Function not implemented.');
+}
+
+

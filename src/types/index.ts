@@ -26,6 +26,7 @@ export interface Subject {
 export interface Period {
   id: number;
   period: string;
+  is_exam?: boolean;
 }
 
 export interface Level {
@@ -62,32 +63,32 @@ export interface PaginatedResponse<T> {
 export interface GradeSheet {
   student_id: number;
   student_name: string;
+  status: string;
   subjects: {
     subject_id: string;
     subject_name: string;
-    first_period?: string;
-    second_period?: string;
-    third_period?: string;
-    first_exam?: string;
-    fourth_period?: string;
-    fifth_period?: string;
-    sixth_period?: string;
-    second_exam?: string;
-    sem1_avg?: string;
-    sem2_avg?: string;
-    final_avg?: string;
-    // Backend fields
-    '1st'?: number | null;
-    '2nd'?: number | null;
-    '3rd'?: number | null;
-    '1exam'?: number | null;
-    '4th'?: number | null;
-    '5th'?: number | null;
-    '6th'?: number | null;
-    '2exam'?: number | null;
-    '1s'?: number | null;
-    '2s'?: number | null;
-    'f'?: number | null;
+    first_period: string;
+    second_period: string;
+    third_period: string;
+    first_exam: string;
+    fourth_period: string;
+    fifth_period: string;
+    sixth_period: string;
+    second_exam: string;
+    sem1_avg: string;
+    sem2_avg: string;
+    final_avg: string;
+    '1st': string;
+    '2nd': string;
+    '3rd': string;
+    '1exam': string;
+    '4th': string;
+    '5th': string;
+    '6th': string;
+    '2exam': string;
+    '1a': string;
+    '2a': string;
+    'f': string;
   }[];
 }
 
@@ -161,3 +162,52 @@ export interface PdfResponse {
   message?: string;
   pdf_path?: string;
 }
+
+
+export interface PdfLoading {
+  [key: string]: boolean;
+}
+
+export interface PdfUrls {
+  [key: string]: string;
+}
+
+export interface UseGradeSheetsReturn {
+  levels: Level[];
+  academicYears: AcademicYear[];
+  subjects: Subject[];
+  periods: Period[];
+  selectedLevelId: number | null;
+  selectedAcademicYearId: number | null;
+  selectedSubjectId: number | null;
+  selectedPeriodId: number | null;
+  students: Student[];
+  gradeSheets: GradeSheet[];
+  loading: boolean;
+  pdfLoading: PdfLoading;
+  errors: Error;
+  pdfUrls: PdfUrls;
+  handleLevelChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  handleAcademicYearChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  handleGeneratePDF: (levelId: number, studentId?: number) => Promise<void>;
+}
+export interface AdminManagement {
+  subjects:Subject[];
+}
+
+export type AdminPageSection<T> = {
+  title: string;
+  FormComponent: React.FC<{
+    onSuccess: () => void;
+    editingItem?: T | null;
+    onCancel?: () => void;
+  }>;
+  ListComponent: React.FC<{
+    onEdit: (item: T) => void;
+    onDelete: (item: T) => void;
+  }>;
+};
+
+export type AdminPageProps<T> = {
+  sections: AdminPageSection<T>[];
+};

@@ -39,3 +39,78 @@
   padding: 0.5rem;
   box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
 }
+
+
+/* Global styles for the Bomi theme */
+.bomi-theme {
+  --primary-color: #FFFFFF;
+  --secondary-color: #008000;
+  --text-color: #333333;
+  --background-color: #F5F5F5;
+  --link-color: #008000;
+}
+
+.bomi-theme {
+  background-color: var(--background-color);
+  color: var(--text-color);
+  font-family: Arial, sans-serif;
+}
+
+.bomi-theme h1, .bomi-theme h2, .bomi-theme h3 {
+  color: var(--text-color);
+}
+
+.bomi-theme a {
+  color: var(--link-color);
+  text-decoration: none;
+}
+
+.bomi-theme a:hover {
+  text-decoration: underline;
+}
+
+.bomi-theme button, .bomi-theme input, .bomi-theme select {
+  border: 1px solid var(--secondary-color);
+  background-color: var(--primary-color);
+  color: var(--text-color);
+  padding: 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease-in-out;
+}
+
+.bomi-theme button:hover:not(:disabled) {
+  background-color: var(--secondary-color);
+  color: var(--primary-color);
+}
+
+.bomi-theme button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.bomi-theme select {
+  width: 100%;
+}
+
+.bomi-theme input:focus, .bomi-theme select:focus {
+  outline: none;
+  border-color: var(--secondary-color);
+  box-shadow: 0 0 5px rgba(0, 128, 0, 0.3);
+}
+
+/* Responsive container */
+.bomi-theme .container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* Card styles for collapsible sections */
+.bomi-theme .card {
+  background-color: var(--primary-color);
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
