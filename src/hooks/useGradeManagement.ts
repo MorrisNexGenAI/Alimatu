@@ -101,8 +101,8 @@ export const useGradeManagement = () => {
       const academicYear = academicYears.find((ay) => ay.id === selectedAcademicYearId);
       if (academicYear) {
         api.grade_sheets.getGradesByLevel(selectedLevelId)
-          .then((data) => setGradeSheets(data))
-          .catch((err) => toast.error('Failed to refresh gradesheets'));
+          .then((data:any) => setGradeSheets(data))
+          .catch((err:any) => toast.error('Failed to refresh gradesheets'));
       }
     }
   };

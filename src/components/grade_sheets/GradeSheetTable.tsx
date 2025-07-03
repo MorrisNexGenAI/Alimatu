@@ -1,10 +1,12 @@
-
 import React from 'react';
 import GradeAverageCalculator from './GradeAvgCalculator';
-import type { GradeSheet } from '../../types';
+import type { GradeSheet, PdfUrls, PdfLoading } from '../../types';
 
 interface GradeSheetTableProps {
   gradesheets: GradeSheet[];
+  openModal?: (studentId: number | null, action: string) => void;
+  pdfUrls?: PdfUrls;
+  pdfLoading?: PdfLoading;
 }
 
 const periodMap: { [key: string]: string } = {
@@ -21,11 +23,7 @@ const periodMap: { [key: string]: string } = {
   'f': 'final_avg',
 };
 
-const GradeSheetTable: React.FC<GradeSheetTableProps> = ({ gradesheets }) => {
-  const handlePrint = () => {
-    window.print();
-  };
-
+const GradeSheetTable: React.FC<GradeSheetTableProps> = ({ gradesheets, openModal, pdfUrls, pdfLoading }) => {
   console.log('Raw GradeSheets Input:', JSON.stringify(gradesheets, null, 2));
 
   if (!gradesheets.length) {
@@ -47,9 +45,25 @@ const GradeSheetTable: React.FC<GradeSheetTableProps> = ({ gradesheets }) => {
     <div className="b-gradesheet-table-container">
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h1 className="mb-0">Gradesheet for {gradesheets[0].student_name} (Status: {gradesheets[0].status || 'PENDING'})</h1>
-        <button className="b-print-button btn btn-info" onClick={handlePrint}>
-          Print Grade Sheet
-        </button>
+        <div>
+          <button
+            className={`b-print-button btn btn-info ${pdfLoading?.[`student_${gradesheets[0].student_id}`] ? 'opacity-50' : ''}`}
+            onClick={() => openModal?.(gradesheets[0].student_id, 'print')}
+            disabled={pdfLoading?.[`student_${gradesheets[0].student_id}`]}
+          >
+            {pdfLoading?.[`student_${gradesheets[0].student_id}`] ? 'Generating...' : 'Generate Periodic PDF'}
+          </button>
+          {pdfUrls?.[`student_${gradesheets[0].student_id}`] && (
+            <a
+              href={pdfUrls[`student_${gradesheets[0].student_id}`]}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ml-2 text-blue-500 underline text-sm"
+            >
+              View PDF
+            </a>
+          )}
+        </div>
       </div>
       <div className="table-responsive">
         <table className="table table-bordered table-hover w-full border-collapse">
@@ -60,13 +74,13 @@ const GradeSheetTable: React.FC<GradeSheetTableProps> = ({ gradesheets }) => {
               <th scope="col" className="border p-2">2nd Period</th>
               <th scope="col" className="border p-2">3rd Period</th>
               <th scope="col" className="border p-2">1st Semester Exam</th>
-              <th scope="col" className="border p-2">1st Semester Avg </th>
+              <th scope="col" className="border p-2">1st Semester Avg</th>
               <th scope="col" className="border p-2">4th Period</th>
               <th scope="col" className="border p-2">5th Period</th>
               <th scope="col" className="border p-2">6th Period</th>
               <th scope="col" className="border p-2">2nd Semester Exam</th>
-              <th scope="col" className="border p-2">2nd Semester Avg </th>
-              <th scope="col" className="border p-2">Final Avg </th>
+              <th scope="col" className="border p-2">2nd Semester Avg</th>
+              <th scope="col" className="border p-2">Final Avg</th>
             </tr>
           </thead>
           <tbody>
@@ -87,11 +101,9 @@ const GradeSheetTable: React.FC<GradeSheetTableProps> = ({ gradesheets }) => {
                 'f': '-',
               };
               console.log(`Raw Subject Data for ${name}:`, JSON.stringify(subjectData, null, 2));
-              // Calculate averages using GradeAverageCalculator
               const calculatedSubject = (
                 <GradeAverageCalculator subject={subjectData} />
               ).props.subject as { [key: string]: string };
-              // Map backend keys to frontend keys
               const mappedData = Object.keys(calculatedSubject).reduce((acc, key) => {
                 const mappedKey = periodMap[key] || key;
                 acc[mappedKey] = calculatedSubject[key] || '-';

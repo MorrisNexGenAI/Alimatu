@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useRefresh } from '../context/RefreshContext';
 import { api } from '../api';
+import { pdfs } from '../api/pdfs';
 import type { Level, AcademicYear, PassFailedStatus } from '../types';
 
 export const useReportCard = () => {
@@ -97,23 +98,14 @@ export const useReportCard = () => {
     try {
       const academicYear = academicYears.find((ay) => ay.id === selectedAcademicYearId)?.name;
       if (!academicYear) throw new Error('Invalid academic year selected');
-      const response = await api.grade_sheets.printReportCard(
-        selectedLevelId,
-        academicYear,
-        studentId,
-        'yearly'
-      ) as { view_url?: string } | undefined;
-      if (response && typeof response === 'object' && 'view_url' in response && response.view_url) {
-        const key = studentId ? `student_${studentId}` : `level_${selectedLevelId}`;
-        setPdfUrls((prev) => ({ ...prev, [key]: response.view_url! }));
-        toast.success('Report card generated successfully! Click the link to view.');
-      } else {
-        throw new Error('Invalid response from server: missing view_url');
-      }
+      const response = await pdfs.generatePeriodicPDF(selectedLevelId, academicYear, studentId);
+      const key = studentId ? `student_${studentId}` : `level_${selectedLevelId}`;
+      setPdfUrls((prev) => ({ ...prev, [key]: response.view_url }));
+      toast.success('Periodic report card generated successfully! Click the link to view.');
     } catch (err: any) {
       const message = err.response?.data?.error || (err instanceof Error ? err.message : 'Unknown error');
-      toast.error(`Failed to generate report card: ${message}`);
-      console.error('PDF generation error:', err);
+      toast.error(`Failed to generate periodic report card: ${message}`);
+      console.error('Periodic PDF generation error:', err);
     }
   };
 
@@ -139,7 +131,7 @@ export const useReportCard = () => {
       if (['PASS', 'FAIL', 'CONDITIONAL'].includes(modal.action) && modal.statusId) {
         await handleSetStatus(modal.statusId, modal.action as 'PASS' | 'FAIL' | 'CONDITIONAL');
       } else if (modal.action === 'print' && modal.statusId) {
-        const status = statuses.find((s) => s.id === modal.statusId); // Fixed typo: statusStatusId -> statusId
+        const status = statuses.find((s) => s.id === modal.statusId);
         if (status) await handleGeneratePDF(status.student.id);
       } else if (modal.action === 'print_level') {
         await handleGeneratePDF();

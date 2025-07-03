@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useRefresh } from '../context/RefreshContext';
-import { api } from '../api';
+import { gradesApi } from '../api/grades';
 import { grade_sheets } from '../api/grade_sheets';
-import { type Level, type Student, type AcademicYear, type UseGradeSheetsReturn, type GradeSheet, type Subject, type Period, type PaginatedResponse, PdfLoading, PdfUrls } from '../types';
+import { pdfs } from '../api/pdfs';
+import type { Level, AcademicYear, Subject, Period, GradeSheet, UseGradeSheetsReturn, Student, PdfLoading, PdfUrls } from '../types';
 
 export interface Errors {
   levels?: string;
@@ -13,7 +14,7 @@ export interface Errors {
   periods?: string;
   subject?: string;
   name?: string;
-  message?:string;
+  message?: string;
 }
 
 export const useGradeSheets = (): UseGradeSheetsReturn => {
@@ -32,17 +33,17 @@ export const useGradeSheets = (): UseGradeSheetsReturn => {
   const [pdfLoading, setPdfLoading] = useState<PdfLoading>({});
   const [errors, setErrors] = useState<Errors>({});
   const [pdfUrls, setPdfUrls] = useState<PdfUrls>({});
+  const [modal, setModal] = useState<{ show: boolean; studentId?: number; action?: string }>({ show: false });
 
- 
   useEffect(() => {
     const fetchInitialData = async () => {
       setLoading(true);
       setErrors({});
       try {
         const [levelResponse, academicYearResponse, periodResponse] = await Promise.all([
-          api.levels.getLevels(),
-          api.academic_years.getAcademicYears(),
-          api.periods.getPeriods(),
+          gradesApi.getLevels(),
+          gradesApi.getAcademicYears(),
+          gradesApi.getPeriods(),
         ]);
 
         let levelData: Level[] = [];
@@ -121,9 +122,9 @@ export const useGradeSheets = (): UseGradeSheetsReturn => {
         if (!academicYear) throw new Error('Invalid academic year selected');
         console.log('Fetching data for:', { levelId: selectedLevelId, academicYear });
         const [studentResponse, gradesResponse, subjectResponse] = await Promise.all([
-          api.students.getStudentsByLevel(selectedLevelId, academicYear),
+          gradesApi.getStudentsByLevel(selectedLevelId, academicYear),
           grade_sheets.getGradeSheetsByLevel(selectedLevelId, academicYear),
-          api.subjects.getSubjects(selectedLevelId),
+          gradesApi.getSubjectsByLevel(selectedLevelId),
         ]);
         console.log('Raw Students Response:', JSON.stringify(studentResponse, null, 2));
         console.log('Raw GradeSheets Response:', JSON.stringify(gradesResponse, null, 2));
@@ -139,7 +140,6 @@ export const useGradeSheets = (): UseGradeSheetsReturn => {
           throw new Error('Invalid student response format');
         }
 
-        // Rely on api/grade_sheets.ts parsing
         const gradesData: GradeSheet[] = gradesResponse;
 
         let subjectData: Subject[] = [];
@@ -192,7 +192,6 @@ export const useGradeSheets = (): UseGradeSheetsReturn => {
     fetchLevelData();
   }, [selectedLevelId, selectedAcademicYearId, refresh, academicYears]);
 
-
   const handleLevelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const levelId = Number(e.target.value) || null;
     console.log('Level changed:', { levelId, value: e.target.value });
@@ -209,25 +208,48 @@ export const useGradeSheets = (): UseGradeSheetsReturn => {
 
   const handleGeneratePDF = async (levelId: number, studentId?: number) => {
     const key = studentId ? `student_${studentId}` : `level_${levelId}`;
-    setPdfLoading((prev: any) => ({ ...prev, [key]: true }));
+    setPdfLoading((prev) => ({ ...prev, [key]: true }));
     try {
       const academicYear = academicYears.find((ay) => ay.id === selectedAcademicYearId)?.name.replace('-', '/');
       if (!academicYear) throw new Error('Invalid academic year selected');
-      const response = await grade_sheets.generatePDF(levelId, academicYear, studentId);
+      const response = await pdfs.generatePeriodicPDF(levelId, academicYear, studentId);
       console.log('PDF Response:', JSON.stringify(response, null, 2));
       if (!response.view_url) throw new Error('No PDF URL returned from server');
-      setPdfUrls((prev: any) => ({ ...prev, [key]: response.view_url }));
+      setPdfUrls((prev) => ({ ...prev, [key]: response.view_url }));
       window.open(response.view_url, '_blank');
-      toast.success('PDF generated and opened!');
+      toast.success('Periodic PDF generated and opened!');
     } catch (err: any) {
       console.error('PDF Generation Error:', JSON.stringify({
         message: err.message,
         response: err.response?.data,
         status: err.response?.status,
       }, null, 2));
-      toast.error(`Failed to generate PDF: ${err.message || 'Unknown error'}`);
+      toast.error(`Failed to generate periodic PDF: ${err.message || 'Unknown error'}`);
     } finally {
-      setPdfLoading((prev: any) => ({ ...prev, [key]: false }));
+      setPdfLoading((prev) => ({ ...prev, [key]: false }));
+    }
+  };
+
+  const openModal = (studentId: number | null, action: string): void => {
+    setModal({ show: true, studentId: studentId || undefined, action });
+  };
+
+  const closeModal = (): void => {
+    setModal({ show: false });
+  };
+
+  const handleConfirmModal = async (): Promise<void> => {
+    if (!modal.action || !selectedLevelId) return;
+    try {
+      if (modal.action === 'print' && modal.studentId) {
+        await handleGeneratePDF(selectedLevelId, modal.studentId);
+      } else if (modal.action === 'print_level') {
+        await handleGeneratePDF(selectedLevelId);
+      }
+      setModal({ show: false });
+    } catch (err: any) {
+      const message = err.response?.data?.error || err.message || 'Unknown error';
+      toast.error(`Action failed: ${message}`);
     }
   };
 
@@ -246,8 +268,12 @@ export const useGradeSheets = (): UseGradeSheetsReturn => {
     pdfLoading,
     errors,
     pdfUrls,
+    modal,
     handleLevelChange,
     handleAcademicYearChange,
     handleGeneratePDF,
+    openModal,
+    closeModal,
+    handleConfirmModal,
   };
 };

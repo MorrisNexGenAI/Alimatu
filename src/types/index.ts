@@ -165,7 +165,6 @@ export interface PdfResponse {
   pdf_path?: string;
 }
 
-
 export interface PdfLoading {
   [key: string]: boolean;
 }
@@ -189,12 +188,17 @@ export interface UseGradeSheetsReturn {
   pdfLoading: PdfLoading;
   errors: Errors;
   pdfUrls: PdfUrls;
+  modal: { show: boolean; studentId?: number; action?: string };
   handleLevelChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   handleAcademicYearChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   handleGeneratePDF: (levelId: number, studentId?: number) => Promise<void>;
+  openModal: (studentId: number | null, action: string) => void;
+  closeModal: () => void;
+  handleConfirmModal: () => Promise<void>;
 }
+
 export interface AdminManagement {
-  subjects:Subject[];
+  subjects: Subject[];
 }
 
 export type AdminPageSection<T> = {
