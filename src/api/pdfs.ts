@@ -33,7 +33,7 @@ export const pdfs = {
         level_id: levelId,
         academic_year: academicYear,
       };
-      if (studentId) {
+      if (studentId !== undefined) { // Explicitly include student_id only if provided
         params.student_id = studentId;
       }
       const response: AxiosResponse<PdfResponse> = await axios.get(
@@ -74,7 +74,7 @@ export const pdfs = {
         level_id: levelId,
         academic_year: academicYear,
       };
-      if (studentId) {
+      if (studentId !== undefined) {
         params.student_id = studentId;
       }
       const response: AxiosResponse<PdfResponse> = await axios.get(
