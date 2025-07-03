@@ -5,15 +5,16 @@ import { api } from '../api';
 import { grade_sheets } from '../api/grade_sheets';
 import { type Level, type Student, type AcademicYear, type UseGradeSheetsReturn, type GradeSheet, type Subject, type Period, type PaginatedResponse, PdfLoading, PdfUrls } from '../types';
 
-interface Errors {
+export interface Errors {
   levels?: string;
   academicYears?: string;
   students?: string;
   grades?: string;
   periods?: string;
   subject?: string;
+  name?: string;
+  message?:string;
 }
-
 
 export const useGradeSheets = (): UseGradeSheetsReturn => {
   const { refresh, setRefresh } = useRefresh();
@@ -32,6 +33,7 @@ export const useGradeSheets = (): UseGradeSheetsReturn => {
   const [errors, setErrors] = useState<Errors>({});
   const [pdfUrls, setPdfUrls] = useState<PdfUrls>({});
 
+ 
   useEffect(() => {
     const fetchInitialData = async () => {
       setLoading(true);
@@ -49,8 +51,8 @@ export const useGradeSheets = (): UseGradeSheetsReturn => {
         } else if (levelResponse && typeof levelResponse === 'object' && Array.isArray(levelResponse.results)) {
           levelData = levelResponse.results;
         } else {
-          console.warn('Unexpected levelResponse format:', JSON.stringify(levelResponse, null, 2));
-          throw new Error('Invalid levels response format');
+          console.warn('Unexpected level response:', JSON.stringify(levelResponse, null, 2));
+          throw new Error('Invalid level response');
         }
 
         let academicYearData: AcademicYear[] = [];
@@ -59,8 +61,8 @@ export const useGradeSheets = (): UseGradeSheetsReturn => {
         } else if (academicYearResponse && typeof academicYearResponse === 'object' && Array.isArray(academicYearResponse.results)) {
           academicYearData = academicYearResponse.results;
         } else {
-          console.warn('Unexpected academicYearResponse format:', JSON.stringify(academicYearResponse, null, 2));
-          throw new Error('Invalid academic years response format');
+          console.warn('Unexpected academic year response:', JSON.stringify(academicYearResponse, null, 2));
+          throw new Error('Invalid academic year response');
         }
 
         let periodData: Period[] = [];
@@ -69,8 +71,8 @@ export const useGradeSheets = (): UseGradeSheetsReturn => {
         } else if (periodResponse && typeof periodResponse === 'object' && Array.isArray(periodResponse.results)) {
           periodData = periodResponse.results;
         } else {
-          console.warn('Unexpected periodResponse format:', JSON.stringify(periodResponse, null, 2));
-          throw new Error('Invalid periods response format');
+          console.warn('Unexpected period response:', JSON.stringify(periodResponse, null, 2));
+          throw new Error('Invalid period response');
         }
 
         console.log('Processed Levels:', JSON.stringify(levelData, null, 2));
@@ -127,9 +129,28 @@ export const useGradeSheets = (): UseGradeSheetsReturn => {
         console.log('Raw GradeSheets Response:', JSON.stringify(gradesResponse, null, 2));
         console.log('Raw Subjects Response:', JSON.stringify(subjectResponse, null, 2));
 
-        const studentsData = Array.isArray(studentResponse) ? studentResponse : [];
-        const gradesData = Array.isArray(gradesResponse) ? gradesResponse : [];
-        const subjectData = Array.isArray(subjectResponse) ? subjectResponse : [];
+        let studentsData: Student[] = [];
+        if (Array.isArray(studentResponse)) {
+          studentsData = studentResponse;
+        } else if (studentResponse && typeof studentResponse === 'object' && Array.isArray(studentResponse.results)) {
+          studentsData = studentResponse.results;
+        } else {
+          console.warn('Unexpected student response:', JSON.stringify(studentResponse, null, 2));
+          throw new Error('Invalid student response format');
+        }
+
+        // Rely on api/grade_sheets.ts parsing
+        const gradesData: GradeSheet[] = gradesResponse;
+
+        let subjectData: Subject[] = [];
+        if (Array.isArray(subjectResponse)) {
+          subjectData = subjectResponse;
+        } else if (subjectResponse && typeof subjectResponse === 'object' && Array.isArray(subjectResponse.results)) {
+          subjectData = subjectResponse.results;
+        } else {
+          console.warn('Unexpected subject response:', JSON.stringify(subjectResponse, null, 2));
+          throw new Error('Invalid subject response format');
+        }
 
         setStudents(studentsData);
         setGradeSheets(gradesData);
@@ -146,6 +167,7 @@ export const useGradeSheets = (): UseGradeSheetsReturn => {
         if (gradesData.length === 0) {
           console.warn('No gradesheets found for level_id:', selectedLevelId, 'academic_year:', academicYear);
           setErrors((prev) => ({ ...prev, grades: 'No grades found for this level and academic year' }));
+          toast.error('No gradesheets found for the selected level and academic year');
         }
         if (subjectData.length === 0) {
           console.warn('No subjects found for level_id:', selectedLevelId);
@@ -169,6 +191,7 @@ export const useGradeSheets = (): UseGradeSheetsReturn => {
     };
     fetchLevelData();
   }, [selectedLevelId, selectedAcademicYearId, refresh, academicYears]);
+
 
   const handleLevelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const levelId = Number(e.target.value) || null;

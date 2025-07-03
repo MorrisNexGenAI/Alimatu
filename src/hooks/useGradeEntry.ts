@@ -216,60 +216,60 @@ export const useGradeEntry = () => {
     }
   };
 
-  // Submit grades
   const handleSubmit = async () => {
-    if (!selectedLevelId || !selectedAcademicYearId || !selectedSubjectId || !selectedPeriodId) {
-      toast.error('Please select level, academic year, subject, and period');
-      return;
-    }
-    const academicYear = academicYears.find((ay) => ay.id === selectedAcademicYearId)?.name;
-    if (!academicYear) {
-      toast.error('Invalid academic year selected');
-      return;
-    }
-    if (students.length === 0) {
-      toast.error('No enrolled students found');
-      return;
-    }
-    const validGrades: GradeEntry[] = Object.entries(grades)
-      .filter(([_, score]) => score !== null)
-      .map(([studentId, score]) => ({
-        student_id: parseInt(studentId),
-        score: score!,
-        period_id: selectedPeriodId,
-      }));
-    if (validGrades.length === 0) {
-      toast.error('No valid grades to submit');
-      return;
-    }
-    const gradeData: PostGradesData = {
-      level: selectedLevelId,
-      subject_id: selectedSubjectId,
+  if (!selectedLevelId || !selectedAcademicYearId || !selectedSubjectId || !selectedPeriodId) {
+    toast.error('Please select level, academic year, subject, and period');
+    return;
+  }
+  if (students.length === 0) {
+    toast.error('No enrolled students found');
+    return;
+  }
+  const validGrades: GradeEntry[] = Object.entries(grades)
+    .filter(([_, score]) => score !== null)
+    .map(([studentId, score]) => ({
+      student_id: parseInt(studentId),
+      score: score!,
       period_id: selectedPeriodId,
-      academic_year: academicYear,
-      grades: validGrades,
-    };
-    console.log('Submitting grades:', JSON.stringify(gradeData, null, 2));
-    try {
-      const response = await gradesApi.postGrades(gradeData);
-      console.log('Grade Submission Response:', JSON.stringify(response, null, 2));
-      if (response.errors.length > 0) {
-        toast.error(`Some grades failed: ${response.errors.map(e => e.error).join(', ')}`);
-      } else {
-        toast.success('Grades submitted successfully');
-      }
-      setGrades({});
-      setExistingGrades([]);
-      setRefresh((prev) => prev + 1);
-    } catch (err: any) {
-      console.error('Submit Grades Error:', JSON.stringify({
-        message: err.message,
-        response: err.response?.data,
-        status: err.response?.status,
-      }, null, 2));
-      toast.error(err.response?.data?.error || 'Failed to submit grades');
-    }
+    }));
+  if (validGrades.length === 0) {
+    toast.error('No valid grades to submit');
+    return;
+  }
+  const gradeData: PostGradesData = {
+    level: selectedLevelId,
+    subject_id: selectedSubjectId,
+    period_id: selectedPeriodId,
+    academic_year: selectedAcademicYearId, // Use ID instead of name
+    grades: validGrades,
   };
+  console.log('Submitting grades:', JSON.stringify(gradeData, null, 2));
+  try {
+    const response = await gradesApi.postGrades(gradeData);
+    console.log('Grade Submission Response:', JSON.stringify(response, null, 2));
+    if (typeof response === 'string') {
+      toast.error('Server returned an unexpected response. Please check the server configuration.');
+      console.error('Unexpected response format:', response);
+      return;
+    }
+    if (response.errors && response.errors.length > 0) {
+      toast.error(`Some grades failed: ${response.errors.map(e => e.error).join(', ')}`);
+    } else {
+      toast.success('Grades submitted successfully');
+    }
+    setGrades({});
+    setExistingGrades([]);
+    setRefresh((prev) => prev + 1);
+  } catch (err: any) {
+    console.error('Submit Grades Error:', JSON.stringify({
+      message: err.message,
+      response: err.response?.data,
+      status: err.response?.status,
+    }, null, 2));
+    const errorMessage = err.response?.data?.error || err.message || 'Failed to submit grades';
+    toast.error(errorMessage);
+  }
+};
 
   return {
     levels,

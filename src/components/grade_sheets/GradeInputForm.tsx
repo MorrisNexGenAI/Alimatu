@@ -8,6 +8,7 @@ interface GradeInputFormProps {
   levelId: number;
   subjectId: number | null;
   periodId: number | null;
+  academicYearId: number;
   onSubmit: () => void;
 }
 
@@ -16,6 +17,7 @@ const GradeInputForm: React.FC<GradeInputFormProps> = ({
   levelId,
   subjectId,
   periodId,
+  academicYearId,
   onSubmit,
 }) => {
   const [grades, setGrades] = useState<{ [key: number]: number }>({});
@@ -30,8 +32,8 @@ const GradeInputForm: React.FC<GradeInputFormProps> = ({
   };
 
   const handleSubmit = async () => {
-    if (!subjectId || !periodId) {
-      toast.error('Please select subject and period');
+    if (!subjectId || !periodId || !academicYearId) {
+      toast.error('Please select subject, period, and academic year');
       return;
     }
 
@@ -40,6 +42,7 @@ const GradeInputForm: React.FC<GradeInputFormProps> = ({
       .map(([studentId, score]) => ({
         student_id: parseInt(studentId),
         score,
+        period_id: periodId,
       }));
 
     if (gradesToSubmit.length === 0) {
@@ -54,7 +57,7 @@ const GradeInputForm: React.FC<GradeInputFormProps> = ({
         subject_id: subjectId,
         period_id: periodId,
         grades: gradesToSubmit,
-        academic_year: ''
+        academic_year: academicYearId,
       });
       toast.success('Grades submitted successfully');
       setGrades({});

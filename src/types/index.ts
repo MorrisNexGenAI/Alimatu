@@ -1,3 +1,5 @@
+import { Errors } from "../hooks/useGradeSheets";
+
 export interface Grade {
   id?: number;
   student_id: number;
@@ -129,7 +131,7 @@ export interface PostGradesData {
   level: number;
   subject_id: number;
   period_id: number;
-  academic_year: string;
+  academic_year: number | string;
   grades: GradeEntry[];
 }
 
@@ -185,7 +187,7 @@ export interface UseGradeSheetsReturn {
   gradeSheets: GradeSheet[];
   loading: boolean;
   pdfLoading: PdfLoading;
-  errors: Error;
+  errors: Errors;
   pdfUrls: PdfUrls;
   handleLevelChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   handleAcademicYearChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;

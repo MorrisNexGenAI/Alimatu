@@ -2,6 +2,27 @@ import axios, { AxiosResponse } from 'axios';
 import { BASE_URL } from './config';
 import type { Level, AcademicYear, Subject, Period, Student, PostGradesData, GradeResponse, ExistingGrade } from '../types/index';
 
+// Helper function to fetch CSRF token
+const getCsrfToken = async (): Promise<string> => {
+  try {
+    // Make a GET request to an endpoint that sets the CSRF cookie
+    await axios.get(`${BASE_URL}/api/csrf/`, { withCredentials: true });
+    const csrfToken = document.cookie.match(/csrftoken=([^;]+)/)?.[1];
+    if (!csrfToken) {
+      throw new Error('CSRF token not found in cookies');
+    }
+    console.log('Fetched CSRF Token:', csrfToken);
+    return csrfToken;
+  } catch (error: any) {
+    console.error('Fetch CSRF Token Error:', JSON.stringify({
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+    }, null, 2));
+    throw error;
+  }
+};
+
 export const gradesApi = {
   getLevels: async (): Promise<Level[]> => {
     try {
@@ -84,8 +105,13 @@ export const gradesApi = {
 
   postGrades: async (data: PostGradesData): Promise<GradeResponse> => {
     try {
+      const csrfToken = await getCsrfToken(); // Fetch CSRF token explicitly
       const response: AxiosResponse<GradeResponse> = await axios.post(`${BASE_URL}/api/grade_sheets/input/`, data, {
-        headers: { 'X-CSRFToken': document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '' },
+        headers: {
+          'X-CSRFToken': csrfToken,
+          'Content-Type': 'application/json',
+        },
+        withCredentials: true,
       });
       console.log('Post Grades Response:', JSON.stringify(response.data, null, 2));
       return response.data;
