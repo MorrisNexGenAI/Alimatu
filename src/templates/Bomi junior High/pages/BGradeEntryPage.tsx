@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useGradeEntry } from '../../../hooks/useGradeEntry';
 import Select from '../../../components/common/Select';
+import BulkInput from '../../../components/grade_sheets/BulkInput';
 import BomiTheme from '../bomi';
 import '../styles/b_gradeentry.css';
+import type { Student } from '../../../types';
 
 const BGradeEntryPage: React.FC = () => {
   const {
@@ -26,6 +28,16 @@ const BGradeEntryPage: React.FC = () => {
     handleCheckExistingGrades,
     handleSubmit,
   } = useGradeEntry();
+
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+
+  const handleStudentClick = (student: Student) => {
+    setSelectedStudent(student);
+  };
+
+  const closeBulkInput = () => {
+    setSelectedStudent(null);
+  };
 
   const levelOptions = [
     { value: '', label: 'Select a level' },
@@ -127,6 +139,7 @@ const BGradeEntryPage: React.FC = () => {
                       <td className="border p-2">
                         <span
                           className="b-student-name cursor-pointer text-blue-600 hover:underline"
+                          onClick={() => handleStudentClick(student)}
                         >
                           {`${student.firstName} ${student.lastName}`}
                         </span>
@@ -165,6 +178,18 @@ const BGradeEntryPage: React.FC = () => {
               {loading ? 'Loading students...' : 'No students available for this level and academic year.'}
             </p>
           )
+        )}
+
+        {selectedStudent && (
+          <BulkInput
+            student={selectedStudent}
+            levelId={selectedLevelId!}
+            academicYearId={selectedAcademicYearId!}
+            subjects={subjects}
+            periods={periods}
+            onClose={closeBulkInput}
+            onSubmit={handleSubmit}
+          />
         )}
       </div>
     </BomiTheme>
