@@ -108,7 +108,7 @@ const Sidebar: React.FC = () => {
               {({ isActive }) => (
                 <>
                   <HomeIcon className="h-4 w-4 inline-block mr-2" /> {/* Reduced size */}
-                  {isActive ? <span className="font-bold">ReportCard</span> : 'report card'}
+                  {isActive ? <span className="font-bold">ReportCard</span> : 'Report card'}
                 </>
               )}
             </NavLink>

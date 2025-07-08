@@ -24,16 +24,16 @@ const getCsrfToken = async (): Promise<string> => {
 export const pdfs = {
   generatePeriodicPDF: async (
     levelId: number,
-    academicYear: string,
+    academicYearId: number,
     studentId?: number
   ): Promise<PdfResponse> => {
     try {
       const csrfToken = await getCsrfToken();
-      const params: { level_id: number; academic_year: string; student_id?: number } = {
+      const params: { level_id: number; academic_year_id: number; student_id?: number } = {
         level_id: levelId,
-        academic_year: academicYear,
+        academic_year_id: academicYearId,
       };
-      if (studentId !== undefined) { // Explicitly include student_id only if provided
+      if (studentId !== undefined) {
         params.student_id = studentId;
       }
       const response: AxiosResponse<PdfResponse> = await axios.get(
@@ -65,17 +65,22 @@ export const pdfs = {
 
   generateYearlyPDF: async (
     levelId: number,
-    academicYear: string,
+    academicYearId: number,
+    status?: 'pass' | 'fail' | 'conditional',
     studentId?: number
   ): Promise<PdfResponse> => {
     try {
       const csrfToken = await getCsrfToken();
-      const params: { level_id: number; academic_year: string; student_id?: number } = {
+      const params: { level_id: number; academic_year_id: number; student_id?: number; pass_template?: boolean; conditional?: boolean } = {
         level_id: levelId,
-        academic_year: academicYear,
+        academic_year_id: academicYearId,
       };
       if (studentId !== undefined) {
         params.student_id = studentId;
+      }
+      if (status && !studentId) {
+        params.pass_template = status === 'pass';
+        params.conditional = status === 'conditional';
       }
       const response: AxiosResponse<PdfResponse> = await axios.get(
         `${BASE_URL}/api/grade_sheets_pdf/yearly/pdf/generate/`,

@@ -197,6 +197,27 @@ export interface UseGradeSheetsReturn {
   handleConfirmModal: () => Promise<void>;
 }
 
+export interface UseReportCardReturn {
+  levels: Level[];
+  academicYears: AcademicYear[];
+  selectedLevelId: number | null;
+  selectedAcademicYearId: number | null;
+  statuses: PassFailedStatus[];
+  loading: boolean;
+  errors: { [key: string]: string };
+  pdfUrls: PdfUrls;
+  modal: { show: boolean; statusId?: number; action?: string };
+  allStatusesReady: boolean;
+  handleLevelChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  handleAcademicYearChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  handleSetStatus: (statusId: number, status: 'PASS' | 'FAIL' | 'CONDITIONAL') => Promise<void>;
+  handleGeneratePDF: (studentId?: number) => Promise<void>;
+  handlePromoteStudent: (statusId: number) => Promise<void>;
+  handleConfirmModal: () => Promise<void>;
+  openModal: (statusId: number | null, action: string) => void;
+  closeModal: () => void;
+}
+
 export interface AdminManagement {
   subjects: Subject[];
 }
@@ -216,4 +237,4 @@ export type AdminPageSection<T> = {
 
 export type AdminPageProps<T> = {
   sections: AdminPageSection<T>[];
-};
+}; 

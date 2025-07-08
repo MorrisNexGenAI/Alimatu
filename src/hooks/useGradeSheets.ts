@@ -210,9 +210,8 @@ export const useGradeSheets = (): UseGradeSheetsReturn => {
     const key = studentId ? `student_${studentId}` : `level_${levelId}`;
     setPdfLoading((prev) => ({ ...prev, [key]: true }));
     try {
-      const academicYear = academicYears.find((ay) => ay.id === selectedAcademicYearId)?.name.replace('-', '/');
-      if (!academicYear) throw new Error('Invalid academic year selected');
-      const response = await pdfs.generatePeriodicPDF(levelId, academicYear, studentId);
+      if (!selectedAcademicYearId) throw new Error('Invalid academic year selected');
+      const response = await pdfs.generatePeriodicPDF(levelId, selectedAcademicYearId, studentId);
       console.log('PDF Response:', JSON.stringify(response, null, 2));
       if (!response.view_url) throw new Error('No PDF URL returned from server');
       setPdfUrls((prev) => ({ ...prev, [key]: response.view_url }));
