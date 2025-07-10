@@ -7,12 +7,14 @@ import GradeEntryPage from '../pages/GradeEntryPage';
 import GradeViewPage from '../pages/GradeViewPage';
 import StudentManagementPage from '../pages/StudentManagementPage';
 import ReportCard from '../pages/ReportCard';
-import AdminManagement from '../pages/AdminManagement'
-
+import AdminManagement from '../pages/AdminManagement';
+import { ProtectedRoute } from '../components/ProtectedRoutes';
+import { LoginPage } from '../pages/LoginPage';
 
 const AppRoutes: React.FC = () => {
   return (
     <Routes>
+      <Route path="/login" element={<LoginPage />} />
       <Route path="/" element={<DashboardShell />}>
         <Route index element={<DashboardPage />} />
         <Route path="students" element={<StudentsPage />} />
@@ -21,7 +23,14 @@ const AppRoutes: React.FC = () => {
         <Route path="gradeentry" element={<GradeEntryPage />} />
         <Route path="studentmanagement" element={<StudentManagementPage />} />
         <Route path="reportcard" element={<ReportCard />} />
-        <Route path="adminmanagement" element={<AdminManagement />} />
+        <Route
+          path="adminmanagement"
+          element={
+            <ProtectedRoute>
+              <AdminManagement />
+            </ProtectedRoute>
+          }
+        />
       </Route>
     </Routes>
   );

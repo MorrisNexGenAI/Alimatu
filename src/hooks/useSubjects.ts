@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { api } from '../api';
-import type { Level, Subject } from '../types';
+import type { Level, Subject } from '../types/index';
 
 export const useSubjects = () =>{
   const [levels, setLevels] = useState<Level[]>([]);

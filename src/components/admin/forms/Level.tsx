@@ -1,25 +1,31 @@
 import React from 'react';
-import { useLevels } from '../../../hooks/useLevels';
-import { AdminForm } from '../../../components/admin/AdminForm';
-import { AdminList } from '../../../components/admin/AdminList';
-import { bomiStyles } from '../../../templates/Bomi junior High/bomi';
+import { AdminForm } from '../AdminForm';
+import type { Level } from '../../types/index';
 
-export const LevelPage = () => {
-  const { levels,  loading } = useLevels();
+interface LevelsFormProps {
+  initialData?: Level;
+  onSubmit: (data: { name: string }) => void;
+  onCancel?: () => void;
+}
+
+export const LevelsForm: React.FC<LevelsFormProps> = ({ initialData, onSubmit, onCancel }) => {
+  const fields = [
+    { name: 'name', label: 'Level Name (e.g., 7)', type: 'text' },
+  ];
 
   return (
-    <div className="container space-y-6">
-      <h1 className="text-2xl font-bold" style={{ color: bomiStyles.textColor }}>
-        Manage Levels
-      </h1>
-     
-      <div className="card">
-        <AdminList
-          columns={['Level Name']}
-          data={levels.map((l) => [l.name])}
-          loading={loading}
-        />
-      </div>
+    <div className="p-4 bg-white rounded shadow">
+      <AdminForm
+        fields={fields}
+        initialData={initialData}
+        onSubmit={onSubmit}
+        onCancel={onCancel}
+      />
+      {onCancel && (
+        <button onClick={onCancel} className="mt-2 text-red-500">
+          Cancel
+        </button>
+      )}
     </div>
   );
 };
