@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import { api } from '../api';
+import { apiClient } from '../api/apiClient';
 import type { Level, Subject } from '../types/index';
 
 export const useSubjects = () =>{
@@ -13,17 +13,7 @@ useEffect(()=>{
   const fetchLevelData = async()=>{
     setLoading(true);
     try{
-      const levelResults = await api.levels.getLevels();
-     
-      let levelData:Level[]=[];
-      if(Array.isArray(levelResults)){
-        setLevels(levelResults)
-      } else if (levelResults && typeof levelResults === 'object' && Array.isArray(levelResults.results)) {
-        levelData=levelResults.results
-      } else {
-        console.warn('Unexpectedd level respond:',JSON.stringify(levelResults,null,2));
-        throw new Error('Invalid level response')
-      }
+      const levelResults = await apiClient.levels.getLevels();
     } catch (err:any) {
       console.error('Error loading level data:', JSON.stringify({
         message:err.message,
@@ -46,17 +36,7 @@ useEffect(()=>{
   }
   const fetchSubjects = async () =>{
     try{
-      const subjectRespone = await api.subjects.getSubjectsByLevel(selectedLevelId);
-      let subjectData:Subject[]=[];
-      if(Array.isArray(subjectRespone)){
-        setSubjects(subjectRespone);
-  
-      } else if (subjectRespone && typeof subjectRespone === 'object' && Array.isArray(subjectRespone.results)){
-        subjectData=subjectRespone.results
-      } else {
-        console.warn('Unexpected subject Response:',JSON.stringify(subjectRespone,null,2))
-        throw new Error('Invalid subject response format');
-      }
+      const subjectRespone = await apiClient.subjects.getSubjectsByLevel(selectedLevelId);
     } catch (err:any){
       console.error('Failed to load subjects data:', JSON.stringify({
         message:err.message,
@@ -85,8 +65,8 @@ const createSubject = async (data:{
   }
   setLoading(true);
   try {
-    const newSubject = await api.subjects.createSubject(data)
-    const updatedSubject = await api.subjects.getSubjectsByLevel(selectedLevelId);
+    const newSubject = await apiClient.subjects.createSubject(data)
+    const updatedSubject = await apiClient.subjects.getSubjectsByLevel(selectedLevelId);
     setSubjects(updatedSubject);
     toast.success('Subject created successfully');
   } catch (err:any){

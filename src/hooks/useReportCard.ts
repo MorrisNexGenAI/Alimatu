@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useRefresh } from '../context/RefreshContext';
-import { api } from '../api';
-import { pdfs } from '../api/pdfs';
+import {apiClient} from '../api/apiClient'
 import type { Level, AcademicYear, PassFailedStatus, UseReportCardReturn } from '../types/index';
 
 export const useReportCard = (): UseReportCardReturn => {
@@ -22,35 +21,16 @@ export const useReportCard = (): UseReportCardReturn => {
     const fetchInitialData = async () => {
       setLoading(true);
       try {
-        const [levelResponse, yearResponse] = await Promise.all([
-          api.levels.getLevels(),
-          api.academic_years.getAcademicYears(),
+        const [levelResponse, AcademicYearResponse] = await Promise.all([
+          apiClient.levels.getLevels(),
+          apiClient.academicYears.getAcademicYears(),
         ]);
 
-        let levelData: Level[] = [];
-        if (Array.isArray(levelResponse)) {
-          levelData = levelResponse;
-        } else if (levelResponse && typeof levelResponse === 'object' && Array.isArray(levelResponse.results)) {
-          levelData = levelResponse.results;
-        } else {
-          console.warn('Unexpected levelResponse format:', JSON.stringify(levelResponse, null, 2));
-          throw new Error('Invalid levels response format');
-        }
 
-        let yearData: AcademicYear[] = [];
-        if (Array.isArray(yearResponse)) {
-          yearData = yearResponse;
-        } else if (yearResponse && typeof yearResponse === 'object' && Array.isArray(yearResponse.results)) {
-          yearData = yearResponse.results;
-        } else {
-          console.warn('Unexpected yearResponse format:', JSON.stringify(yearResponse, null, 2));
-          throw new Error('Invalid academic years response format');
-        }
-
-        setLevels(levelData);
-        setAcademicYears(yearData);
-        const currentYear = yearData.find((year) => year.name === '2025/2026');
-        setSelectedAcademicYearId(currentYear?.id || (yearData.length > 0 ? yearData[0].id : null));
+        setLevels(levelResponse);
+        setAcademicYears(AcademicYearResponse);
+        const currentYear = AcademicYearResponse.find((year) => year.name === '2025/2026');
+        setSelectedAcademicYearId(currentYear?.id || (AcademicYearResponse.length > 0 ? AcademicYearResponse[0].id : null));
       } catch (err: any) {
         const message = err.response?.data?.error || (err instanceof Error ? err.message : 'Unknown error');
         toast.error(`Failed to load initial data: ${message}`);
@@ -74,19 +54,9 @@ export const useReportCard = (): UseReportCardReturn => {
       try {
         const academicYear = academicYears.find((ay) => ay.id === selectedAcademicYearId)?.name;
         if (!academicYear) throw new Error('Invalid academic year selected');
-        const statusData = await api.pass_failed_statuses.getStatusesByLevelAndYear(selectedLevelId, academicYear);
+        const statusData = await apiClient.pass_failed_statues.getStatusesByLevelAndYear(selectedLevelId, academicYear);
         console.log('Raw Status Data Response:', JSON.stringify(statusData, null, 2));
-        let statusArray: PassFailedStatus[] = [];
-        if (Array.isArray(statusData)) {
-          statusArray = statusData;
-        } else if (statusData && typeof statusData === 'object' && Array.isArray(statusData.results)) {
-          statusArray = statusData.results;
-        } else {
-          console.warn('Unexpected statusData format:', JSON.stringify(statusData, null, 2));
-          statusArray = [];
-          toast.error('Invalid status data format received');
-        }
-        const filteredStatuses = statusArray.filter(
+        const filteredStatuses = statusData.filter(
           (status) => !(status.student.firstName === 'Test' && status.student.lastName === 'Student')
         );
         setStatuses(filteredStatuses);
@@ -129,7 +99,7 @@ export const useReportCard = (): UseReportCardReturn => {
     const key = studentId ? `student_${studentId}_${status}` : `level_${selectedLevelId}_${status}`;
     setPdfLoading((prev) => ({ ...prev, [key]: true }));
     try {
-      const response = await pdfs.generateYearlyPDF(selectedLevelId, selectedAcademicYearId, studentId ? undefined : status, studentId);
+      const response = await apiClient.pdfs.generateYearlyPDF(selectedLevelId, selectedAcademicYearId, studentId ? undefined : status, studentId);
       setPdfUrls((prev) => ({ ...prev, [key]: response.view_url }));
       window.open(response.view_url, '_blank');
       toast.success(`Yearly ${studentId ? 'student' : 'level'} ${status} PDF generated successfully!`);

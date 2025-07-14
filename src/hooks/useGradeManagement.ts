@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { api } from '../api';
+import {apiClient} from '../api/apiClient';
 import type { Level, AcademicYear, Student, Subject, Period, GradeSheet } from '../types';
 
 export const useGradeManagement = () => {
@@ -23,9 +23,9 @@ export const useGradeManagement = () => {
       setErrors({});
       try {
         const [levelData, academicYearData, periodData] = await Promise.all([
-          api.levels.getLevels(),
-          api.academic_years.getAcademicYears(),
-          api.periods.getPeriods(),
+          apiClient.levels.getLevels(),
+          apiClient.academicYears.getAcademicYears(),
+          apiClient.periods.getPeriods(),
         ]);
         setLevels(levelData);
         setAcademicYears(academicYearData);
@@ -58,9 +58,9 @@ export const useGradeManagement = () => {
         const academicYear = academicYears.find((ay) => ay.id === selectedAcademicYearId);
         if (!academicYear) throw new Error('Invalid academic year');
         const [studentData, subjectData, gradesheetData] = await Promise.all([
-          api.students.getStudentsByLevel(selectedLevelId, academicYear.name),
-          api.subjects.getSubjectsByLevel(selectedLevelId),
-          api.grade_sheets.getGradesByLevel(selectedLevelId),
+          apiClient.students.getStudentsByLevel(selectedLevelId, academicYear.name),
+          apiClient.subjects.getSubjectsByLevel(selectedLevelId),
+          apiClient.grades.getGradesByLevel(selectedLevelId),
         ]);
         setStudents(studentData);
         setSubjects(subjectData);
@@ -100,7 +100,7 @@ export const useGradeManagement = () => {
     if (selectedLevelId && selectedAcademicYearId) {
       const academicYear = academicYears.find((ay) => ay.id === selectedAcademicYearId);
       if (academicYear) {
-        api.grade_sheets.getGradesByLevel(selectedLevelId)
+        apiClient.grades.getGradesByLevel(selectedLevelId)
           .then((data:any) => setGradeSheets(data))
           .catch((err:any) => toast.error('Failed to refresh gradesheets'));
       }

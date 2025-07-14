@@ -197,3 +197,19 @@ VITE_API_BASE_URL=http://localhost:8000/api/
 📄 License
 
 MIT License
+
+
+
+Day	Topic
+15	🏗️ Frontend Overview: React + Vite Folder Structure
+16	🖼️ Templates: Sidebar, Header, Footer
+17	Dashboard Part 1: Shell + Page
+18	Dashboard Part 2: useDashboard Hook
+19	👨‍🎓 Students – Full Flow: APIs → Hooks → Types → Pages → UI
+20	📝 Grade Entry – Flow & Challenges
+21	📄 Grade Sheets – Displaying Results
+22	🧑‍🏫 Student Management – Filtering, Editing
+23	🧾 Report Card – Connecting Backend Data
+24	🛠️ Admin Section – Dynamic Forms + Lists
+25	⚙️ Reusable Components (AdminList, AdminForm)
+26	Frontend Summary & Insights

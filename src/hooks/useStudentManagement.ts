@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { useRefresh } from '../context/RefreshContext';
-import { api } from '../api';
+import { apiClient } from '../api/apiClient';
 import { Level, Student, AcademicYear } from '../types';
 
 export const useStudentManagement = () => {
@@ -23,7 +23,7 @@ export const useStudentManagement = () => {
     const fetchAcademicYears = async () => {
       setLoadingAcademicYears(true);
       try {
-        const data = await api.academic_years.getAcademicYears();
+        const data = await apiClient.academicYears.getAcademicYears();
         setAcademicYears(data);
         const currentYear = data.find((year) => year.name === '2025/2026');
         setSelectedAcademicYear(currentYear?.name || (data.length > 0 ? data[0].name : null));
@@ -42,7 +42,7 @@ export const useStudentManagement = () => {
     const fetchLevels = async () => {
       setLoadingLevels(true);
       try {
-        const data = await api.levels.getLevels();
+        const data = await apiClient.levels.getLevels();
         setLevels(data);
         if (data.length > 0) setSelectedLevelId(data[0].id);
       } catch (err) {
@@ -64,7 +64,7 @@ export const useStudentManagement = () => {
     const fetchStudents = async () => {
       setLoading(true);
       try {
-        const data = await api.students.getStudentsByLevel(selectedLevelId, selectedAcademicYear);
+        const data = await apiClient.students.getStudentsByLevel(selectedLevelId, selectedAcademicYear);
         setStudents(data || []);
       } catch (err) {
         toast.error('Failed to load students');
@@ -93,7 +93,7 @@ export const useStudentManagement = () => {
     if (!selectedStudent) return;
     setLoading(true);
     try {
-      await api.students.updateStudent(selectedStudent.id, {
+      await apiClient.students.updateStudent(selectedStudent.id, {
         firstName: selectedStudent.firstName,
         lastName: selectedStudent.lastName,
         gender: selectedStudent.gender,
@@ -119,7 +119,7 @@ export const useStudentManagement = () => {
     if (!selectedStudent) return;
     setLoading(true);
     try {
-      await api.students.deleteStudent(selectedStudent.id);
+      await apiClient.students.deleteStudent(selectedStudent.id);
       toast.success('Student deleted successfully');
       setIsDeleteModalOpen(false);
       setRefresh((prev) => (prev === 0 ? 1 : 0));

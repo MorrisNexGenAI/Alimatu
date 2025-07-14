@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
 import type { Student, Subject, Period } from '../../types';
-import { gradesApi } from '../../api/grades';
+import { apiClient } from '../../api/apiClient';
 import Select from '../common/Select';
 import Modal from '../common/Modal';
 
@@ -69,7 +69,7 @@ const BulkInput: React.FC<BulkInputProps> = ({
         academic_year: academicYearId,
       };
       console.log('Sending payload to API:', payload);
-      const response = await gradesApi.postGrades(payload);
+      const response = await apiClient.grades.postGrades(payload);
       console.log('API response:', response);
       toast.success('Grades submitted successfully');
       setGrades({});

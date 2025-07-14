@@ -1,7 +1,8 @@
+// hooks/useStudents.ts
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import { api } from '../api';
-import type { Student, Level, AcademicYear, PaginatedResponse, StudentEnrollmentData } from '../types';
+import { apiClient } from '../api/apiClient';
+import type { Student, Level, AcademicYear, StudentEnrollmentData } from '../types';
 
 export const useStudent = () => {
   const [students, setStudents] = useState<Student[]>([]);
@@ -16,40 +17,15 @@ export const useStudent = () => {
       setLoading(true);
       try {
         const [levelResponse, academicYearResponse] = await Promise.all([
-          api.levels.getLevels(),
-          api.academic_years.getAcademicYears(),
+          apiClient.levels.getLevels(),
+          apiClient.academicYears.getAcademicYears(),
         ]);
 
-        // Handle paginated levels response
-        let levelData: Level[] = [];
-        if (Array.isArray(levelResponse)) {
-          levelData = levelResponse;
-        } else if (levelResponse && typeof levelResponse === 'object' && Array.isArray(levelResponse.results)) {
-          levelData = levelResponse.results;
-        } else {
-          console.warn('Unexpected levelResponse format:', JSON.stringify(levelResponse, null, 2));
-          throw new Error('Invalid levels response format');
-        }
+        setLevels(levelResponse);
+        setAcademicYears(academicYearResponse);
 
-        // Handle paginated academic years response
-        let academicYearData: AcademicYear[] = [];
-        if (Array.isArray(academicYearResponse)) {
-          academicYearData = academicYearResponse;
-        } else if (academicYearResponse && typeof academicYearResponse === 'object' && Array.isArray(academicYearResponse.results)) {
-          academicYearData = academicYearResponse.results;
-        } else {
-          console.warn('Unexpected academicYearResponse format:', JSON.stringify(academicYearResponse, null, 2));
-          throw new Error('Invalid academic years response format');
-        }
-
-        console.log('Processed Levels:', JSON.stringify(levelData, null, 2));
-        console.log('Processed Academic Years:', JSON.stringify(academicYearData, null, 2));
-
-        setLevels(levelData);
-        setAcademicYears(academicYearData);
-
-        const currentYear = academicYearData.find((year) => year.name === '2024/2025');
-        setSelectedAcademicYearId(currentYear?.id || academicYearData[0]?.id || null);
+        const currentYear = academicYearResponse.find((year) => year.name === '2024/2025');
+        setSelectedAcademicYearId(currentYear?.id || academicYearResponse[0]?.id || null);
       } catch (err: any) {
         console.error('Initial Fetch Error:', JSON.stringify({
           message: err.message,
@@ -76,8 +52,7 @@ export const useStudent = () => {
       try {
         const academicYear = academicYears.find((ay) => ay.id === selectedAcademicYearId)?.name;
         if (!academicYear) throw new Error('Invalid academic year selected');
-        const studentsResponse = await api.students.getStudentsByLevel(selectedLevelId, academicYear);
-        console.log('Raw Students Response:', JSON.stringify(studentsResponse, null, 2));
+        const studentsResponse = await apiClient.students.getStudentsByLevel(selectedLevelId, academicYear);
         const filteredStudents = studentsResponse.filter(
           (student: Student) => !(student.firstName === 'Test' && student.lastName === 'Student')
         );
@@ -117,13 +92,12 @@ export const useStudent = () => {
         dob: data.dob,
         level_id: selectedLevelId,
         academic_year_id: selectedAcademicYearId,
-        date_enrolled: new Date().toISOString().split('T')[0], // e.g., "2025-06-20"
+        date_enrolled: new Date().toISOString().split('T')[0],
       };
-      const newStudent = await api.students.addStudentAndEnroll(studentData);
-      // Refresh student list
+      const newStudent = await apiClient.students.addStudentAndEnroll(studentData);
       const academicYear = academicYears.find((ay) => ay.id === selectedAcademicYearId)?.name;
       if (academicYear) {
-        const updatedStudents = await api.students.getStudentsByLevel(selectedLevelId, academicYear);
+        const updatedStudents = await apiClient.students.getStudentsByLevel(selectedLevelId, academicYear);
         const filteredStudents = updatedStudents.filter(
           (student: Student) => !(student.firstName === 'Test' && student.lastName === 'Student')
         );

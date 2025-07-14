@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import { api } from '../api';
+import {apiClient} from '../api/apiClient'
 
 interface DashboardMetrics {
   totalStudents: number;
   recentGrades: number;
 }
 
-export const useDashboard = () => {
+export const
+ useDashboard = () => {
   const [metrics, setMetrics] = useState<DashboardMetrics>({ totalStudents: 0, recentGrades: 0 });
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -19,8 +20,8 @@ export const useDashboard = () => {
       try {
         // Simulated API calls for metrics
         const [studentCount, gradeCount] = await Promise.all([
-          api.students.getStudents(),
-          api.grade_sheets.getRecentGradesCount(),
+          apiClient.students.getStudentsByLevel(),
+          apiClient.grades.getRecentGradesCount(),
         ]);
         setMetrics({
           totalStudents: studentCount.length || 50, // Fallback to static data if API fails

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useRefresh } from '../context/RefreshContext';
-import { gradesApi } from '../api/grades';
+import { apiClient } from '../api/apiClient';
 import type { Level, AcademicYear, Subject, Period, Student, GradeEntry, ExistingGrade, PostGradesData } from '../types/index';
 
 export const useGradeEntry = () => {
@@ -24,43 +24,17 @@ export const useGradeEntry = () => {
     const fetchInitialData = async () => {
       setLoading(true);
       try {
-        const [levelResponse, academicYearResponse, periodData] = await Promise.all([
-          gradesApi.getLevels(),
-          gradesApi.getAcademicYears(),
-          gradesApi.getPeriods(),
+        const [levelResponse, academicYearResponse,periodResponse] = await Promise.all([
+          apiClient.levels.getLevels(),
+          apiClient.academicYears.getAcademicYears(),
+          apiClient.periods.getPeriods(),
         ]);
+        setLevels(levelResponse);
+        setAcademicYears(academicYearResponse);
+        setPeriods(periodResponse);
 
-        // Handle potentially paginated levels response
-        let levelData: Level[] = [];
-        if (Array.isArray(levelResponse)) {
-          levelData = levelResponse;
-        } else if (levelResponse && typeof levelResponse === 'object' && Array.isArray(levelResponse.results)) {
-          levelData = levelResponse.results;
-        } else {
-          console.warn('Unexpected levelResponse format:', JSON.stringify(levelResponse, null, 2));
-          throw new Error('Invalid levels response format');
-        }
-
-        // Handle potentially paginated academic years response
-        let academicYearData: AcademicYear[] = [];
-        if (Array.isArray(academicYearResponse)) {
-          academicYearData = academicYearResponse;
-        } else if (academicYearResponse && typeof academicYearResponse === 'object' && Array.isArray(academicYearResponse.results)) {
-          academicYearData = academicYearResponse.results;
-        } else {
-          console.warn('Unexpected academicYearResponse format:', JSON.stringify(academicYearResponse, null, 2));
-          throw new Error('Invalid academic years response format');
-        }
-
-        console.log('Processed Levels:', JSON.stringify(levelData, null, 2));
-        console.log('Processed Academic Years:', JSON.stringify(academicYearData, null, 2));
-
-        setLevels(levelData);
-        setAcademicYears(academicYearData);
-        setPeriods(periodData);
-
-        const currentYear = academicYearData.find((year) => year.name === '2025/2026');
-        setSelectedAcademicYearId(currentYear?.id || academicYearData[0]?.id || null);
+        const currentYear = academicYearResponse.find((year) => year.name === '2025/2026');
+        setSelectedAcademicYearId(currentYear?.id || academicYearResponse[0]?.id || null);
       } catch (err: any) {
         console.error('Initial Fetch Error:', JSON.stringify({
           message: err.message || 'Unknown error',
@@ -94,29 +68,20 @@ export const useGradeEntry = () => {
       try {
         const academicYear = academicYears.find((ay) => ay.id === selectedAcademicYearId)?.name;
         if (!academicYear) throw new Error('Invalid academic year selected');
-        const [studentData, subjectResponse] = await Promise.all([
-          gradesApi.getStudentsByLevel(selectedLevelId, academicYear),
-          gradesApi.getSubjectsByLevel(selectedLevelId),
+        const [studentResponse, subjectResponse] = await Promise.all([
+          apiClient.students.getStudentsByLevel(selectedLevelId, academicYear),
+          apiClient.subjects.getSubjectsByLevel(selectedLevelId),
         ]);
 
-        // Handle potentially paginated subjects response
-        let subjectData: Subject[] = [];
-        if (Array.isArray(subjectResponse)) {
-          subjectData = subjectResponse;
-        } else if (subjectResponse && typeof subjectResponse === 'object' && Array.isArray(subjectResponse.results)) {
-          subjectData = subjectResponse.results;
-        } else {
-          console.warn('Unexpected subjectResponse format:', JSON.stringify(subjectResponse, null, 2));
-          throw new Error('Invalid subjects response format');
-        }
+ 
 
-        console.log('Processed Subjects:', JSON.stringify(subjectData, null, 2));
+        console.log('Processed Subjects:', JSON.stringify(subjectResponse, null, 2));
 
-        const filteredStudents = studentData.filter(
-          (student) => !(student.firstName === 'Test' && student.lastName === 'Student')
+        const filteredStudents = studentResponse.filter(
+          (student:any) => !(student.firstName === 'Test' && student.lastName === 'Student')
         );
         setStudents(filteredStudents);
-        setSubjects(subjectData);
+        setSubjects(subjectResponse);
       } catch (err: any) {
         console.error('Fetch Data Error:', JSON.stringify({
           message: err.message,
@@ -188,11 +153,11 @@ export const useGradeEntry = () => {
     }
     setLoading(true);
     try {
-      const data = await gradesApi.getGradesByPeriodSubject(
+      const data = await apiClient.grades.getGradesByPeriodSubject(
         selectedLevelId,
         selectedSubjectId,
         selectedPeriodId,
-        academicYear
+       selectedAcademicYearId
       );
       setExistingGrades(data);
       const initialGrades = data.reduce(
@@ -245,7 +210,7 @@ export const useGradeEntry = () => {
   };
   console.log('Submitting grades:', JSON.stringify(gradeData, null, 2));
   try {
-    const response = await gradesApi.postGrades(gradeData);
+    const response = await apiClient.grades.postGrades(gradeData);
     console.log('Grade Submission Response:', JSON.stringify(response, null, 2));
     if (typeof response === 'string') {
       toast.error('Server returned an unexpected response. Please check the server configuration.');

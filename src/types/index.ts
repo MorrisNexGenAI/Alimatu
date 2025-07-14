@@ -15,7 +15,7 @@ export interface GradeSheetEntry {
   student_id: number;
   student_name: string;
   subject_id: number;
-  period_id?: number;
+  period_id: number;
   score: number | null;
 }
 
@@ -56,6 +56,7 @@ export interface AcademicYear {
 }
 
 export interface PaginatedResponse<T> {
+  view_url: any;
   count: number;
   next: string | null;
   previous: string | null;
@@ -204,15 +205,17 @@ export interface UseReportCardReturn {
   selectedAcademicYearId: number | null;
   statuses: PassFailedStatus[];
   loading: boolean;
+  pdfLoading: {[key:string]:boolean}
+  handleGenerateYearlyPDF: (status:"pass" | "fail" | "conditional", studentid?:number)=>Promise<void>;
   errors: { [key: string]: string };
   pdfUrls: PdfUrls;
   modal: { show: boolean; statusId?: number; action?: string };
   allStatusesReady: boolean;
   handleLevelChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   handleAcademicYearChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
-  handleSetStatus: (statusId: number, status: 'PASS' | 'FAIL' | 'CONDITIONAL') => Promise<void>;
-  handleGeneratePDF: (studentId?: number) => Promise<void>;
-  handlePromoteStudent: (statusId: number) => Promise<void>;
+  handleSetStatus?: (statusId: number, status: 'PASS' | 'FAIL' | 'CONDITIONAL') => Promise<void>;
+  handleGeneratePDF?: (studentId?: number) => Promise<void>;
+  handlePromoteStudent?: (statusId: number) => Promise<void>;
   handleConfirmModal: () => Promise<void>;
   openModal: (statusId: number | null, action: string) => void;
   closeModal: () => void;

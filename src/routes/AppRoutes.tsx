@@ -8,7 +8,6 @@ import GradeViewPage from '../pages/GradeViewPage';
 import StudentManagementPage from '../pages/StudentManagementPage';
 import ReportCard from '../pages/ReportCard';
 import AdminManagement from '../pages/AdminManagement';
-import { ProtectedRoute } from '../components/ProtectedRoutes';
 import { LoginPage } from '../pages/LoginPage';
 
 const AppRoutes: React.FC = () => {
@@ -23,14 +22,7 @@ const AppRoutes: React.FC = () => {
         <Route path="gradeentry" element={<GradeEntryPage />} />
         <Route path="studentmanagement" element={<StudentManagementPage />} />
         <Route path="reportcard" element={<ReportCard />} />
-        <Route
-          path="adminmanagement"
-          element={
-            <ProtectedRoute>
-              <AdminManagement />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="adminmanagement" element={ <AdminManagement />}/>
       </Route>
     </Routes>
   );

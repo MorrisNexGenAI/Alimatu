@@ -1,9 +1,10 @@
+// hooks/usePeriods.ts
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { getPeriods, createPeriod, updatePeriod, deletePeriod } from '../api/periods';
-import type { Period } from '../types/index';
+import { apiClient } from '../api/apiClient';
+import type { Period } from '../types';
 
-export const usePeriods = (token: string) => {
+export const usePeriods = () => {
   const [periods, setPeriods] = useState<Period[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -11,7 +12,7 @@ export const usePeriods = (token: string) => {
   const fetchPeriods = async () => {
     setLoading(true);
     try {
-      const data = await getPeriods(token);
+      const data = await apiClient.periods.getPeriods();
       setPeriods(data);
       setError(null);
     } catch (err: any) {
@@ -24,13 +25,13 @@ export const usePeriods = (token: string) => {
   };
 
   useEffect(() => {
-    if (token) fetchPeriods();
-  }, [token]);
+    fetchPeriods();
+  }, []);
 
   const addPeriod = async (data: { period: string }) => {
     setLoading(true);
     try {
-      const newPeriod = await createPeriod(data, token);
+      const newPeriod = await apiClient.periods.createPeriod(data);
       setPeriods([...periods, newPeriod]);
       toast.success('Period created');
       setError(null);
@@ -46,8 +47,8 @@ export const usePeriods = (token: string) => {
   const editPeriod = async (id: number, data: { period: string }) => {
     setLoading(true);
     try {
-      const updatedPeriod = await updatePeriod(id, data, token);
-      setPeriods(periods.map(p => (p.id === id ? updatedPeriod : p)));
+      const updatedPeriod = await apiClient.periods.updatePeriod(id, data);
+      setPeriods(periods.map((p) => (p.id === id ? updatedPeriod : p)));
       toast.success('Period updated');
       setError(null);
     } catch (err: any) {
@@ -62,8 +63,8 @@ export const usePeriods = (token: string) => {
   const removePeriod = async (id: number) => {
     setLoading(true);
     try {
-      await deletePeriod(id, token);
-      setPeriods(periods.filter(p => p.id !== id));
+      await apiClient.periods.deletePeriod(id);
+      setPeriods(periods.filter((p) => p.id !== id));
       toast.success('Period deleted');
       setError(null);
     } catch (err: any) {

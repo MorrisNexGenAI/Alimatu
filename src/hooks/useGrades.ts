@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { api } from '../api';
+import { apiClient } from '../api/apiClient';
 import type { GradeSheet } from '../types/index';
 
 export const useGrades = () => {
@@ -11,7 +11,7 @@ export const useGrades = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await api.grade_sheets.getGradesByLevel(Number(levelId));
+      const data = await apiClient.grades.getGradesByLevel(Number(levelId));
       if (Array.isArray(data)) {
         setGradesheets(data);
       } else {

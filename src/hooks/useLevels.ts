@@ -1,9 +1,10 @@
+// hooks/useLevels.ts
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { getLevels, createLevel, updateLevel, deleteLevel } from '../api/levels';
-import type { Level } from '../types/index';
+import { apiClient } from '../api/apiClient';
+import type { Level } from '../types';
 
-export const useLevels = (token: string) => {
+export const useLevels = () => {
   const [levels, setLevels] = useState<Level[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -11,7 +12,7 @@ export const useLevels = (token: string) => {
   const fetchLevels = async () => {
     setLoading(true);
     try {
-      const data = await getLevels(token);
+      const data = await apiClient.levels.getLevels();
       setLevels(data);
       setError(null);
     } catch (err: any) {
@@ -24,13 +25,13 @@ export const useLevels = (token: string) => {
   };
 
   useEffect(() => {
-    if (token) fetchLevels();
-  }, [token]);
+    fetchLevels();
+  }, []);
 
   const addLevel = async (data: { name: string }) => {
     setLoading(true);
     try {
-      const newLevel = await createLevel(data, token);
+      const newLevel = await apiClient.levels.createLevel(data);
       setLevels([...levels, newLevel]);
       toast.success('Level created');
       setError(null);
@@ -46,8 +47,8 @@ export const useLevels = (token: string) => {
   const editLevel = async (id: number, data: { name: string }) => {
     setLoading(true);
     try {
-      const updatedLevel = await updateLevel(id, data, token);
-      setLevels(levels.map(l => (l.id === id ? updatedLevel : l)));
+      const updatedLevel = await apiClient.levels.updateLevel(id, data);
+      setLevels(levels.map((l) => (l.id === id ? updatedLevel : l)));
       toast.success('Level updated');
       setError(null);
     } catch (err: any) {
@@ -62,8 +63,8 @@ export const useLevels = (token: string) => {
   const removeLevel = async (id: number) => {
     setLoading(true);
     try {
-      await deleteLevel(id, token);
-      setLevels(levels.filter(l => l.id !== id));
+      await apiClient.levels.deleteLevel(id);
+      setLevels(levels.filter((l) => l.id !== id));
       toast.success('Level deleted');
       setError(null);
     } catch (err: any) {
@@ -75,5 +76,5 @@ export const useLevels = (token: string) => {
     }
   };
 
-  return { levels, loading, error, fetchLevels, updateLevel, addLevel, editLevel, removeLevel };
+  return { levels, loading, error, fetchLevels, addLevel, editLevel, removeLevel };
 };
