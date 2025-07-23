@@ -1,12 +1,14 @@
 import React from 'react';
 import GradeAverageCalculator from './GradeAvgCalculator';
-import type { GradeSheet, PdfUrls, PdfLoading } from '../../types';
+import type { Period, Subject,GradeSheet, PdfUrls, PdfLoading } from '../../types';
 
 interface GradeSheetTableProps {
   gradesheets: GradeSheet[];
   openModal?: (studentId: number | null, action: string) => void;
   pdfUrls?: PdfUrls;
   pdfLoading?: PdfLoading;
+  subjects?:Subject[];
+  periods?:Period[];
 }
 
 const periodMap: { [key: string]: string } = {
@@ -24,10 +26,8 @@ const periodMap: { [key: string]: string } = {
 };
 
 const GradeSheetTable: React.FC<GradeSheetTableProps> = ({ gradesheets, openModal, pdfUrls, pdfLoading }) => {
-  console.log('Raw GradeSheets Input:', JSON.stringify(gradesheets, null, 2));
-
   if (!gradesheets.length) {
-    return <p className="text-warning mt-4">No gradesheet data available</p>;
+    return <p className="text-red-500 mt-4">No gradesheet data available</p>;
   }
 
   const fixedSubjects = gradesheets[0].subjects.map((s) => ({
@@ -35,19 +35,21 @@ const GradeSheetTable: React.FC<GradeSheetTableProps> = ({ gradesheets, openModa
     name: s.subject_name,
   }));
 
-  console.log('Fixed Subjects:', JSON.stringify(fixedSubjects, null, 2));
-
   if (!fixedSubjects.length) {
-    return <p className="text-warning mt-4">No subjects available for this student</p>;
+    return <p className="text-red-500 mt-4">No subjects available for this student</p>;
   }
 
   return (
-    <div className="b-gradesheet-table-container">
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h1 className="mb-0">Gradesheet for {gradesheets[0].student_name} (Status: {gradesheets[0].status || 'PENDING'})</h1>
-        <div>
+    <div className="bg-white rounded-lg shadow-sm p-4">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-lg font-semibold text-gray-800">
+          Gradesheet for {gradesheets[0].student_name} (Status: {gradesheets[0].status || 'PENDING'})
+        </h3>
+        <div className="flex items-center gap-3">
           <button
-            className={`b-print-button btn btn-info ${pdfLoading?.[`student_${gradesheets[0].student_id}`] ? 'opacity-50' : ''}`}
+            className={`bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors ${
+              pdfLoading?.[`student_${gradesheets[0].student_id}`] ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
             onClick={() => openModal?.(gradesheets[0].student_id, 'print')}
             disabled={pdfLoading?.[`student_${gradesheets[0].student_id}`]}
           >
@@ -58,29 +60,29 @@ const GradeSheetTable: React.FC<GradeSheetTableProps> = ({ gradesheets, openModa
               href={pdfUrls[`student_${gradesheets[0].student_id}`]}
               target="_blank"
               rel="noopener noreferrer"
-              className="ml-2 text-blue-500 underline text-sm"
+              className="text-blue-600 hover:underline text-sm"
             >
               View PDF
             </a>
           )}
         </div>
       </div>
-      <div className="table-responsive">
-        <table className="table table-bordered table-hover w-full border-collapse">
-          <thead className="table-light">
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse text-sm">
+          <thead className="bg-gray-100">
             <tr>
-              <th scope="col" className="border p-2">Subject</th>
-              <th scope="col" className="border p-2">1st Period</th>
-              <th scope="col" className="border p-2">2nd Period</th>
-              <th scope="col" className="border p-2">3rd Period</th>
-              <th scope="col" className="border p-2">1st Semester Exam</th>
-              <th scope="col" className="border p-2">1st Semester Avg</th>
-              <th scope="col" className="border p-2">4th Period</th>
-              <th scope="col" className="border p-2">5th Period</th>
-              <th scope="col" className="border p-2">6th Period</th>
-              <th scope="col" className="border p-2">2nd Semester Exam</th>
-              <th scope="col" className="border p-2">2nd Semester Avg</th>
-              <th scope="col" className="border p-2">Final Avg</th>
+              <th className="border p-2 text-left font-medium text-gray-700">Subject</th>
+              <th className="border p-2 text-center font-medium text-gray-700">1st</th>
+              <th className="border p-2 text-center font-medium text-gray-700">2nd</th>
+              <th className="border p-2 text-center font-medium text-gray-700">3rd</th>
+              <th className="border p-2 text-center font-medium text-gray-700">1st Exam</th>
+              <th className="border p-2 text-center font-medium text-gray-700">1st Sem Avg</th>
+              <th className="border p-2 text-center font-medium text-gray-700">4th</th>
+              <th className="border p-2 text-center font-medium text-gray-700">5th</th>
+              <th className="border p-2 text-center font-medium text-gray-700">6th</th>
+              <th className="border p-2 text-center font-medium text-gray-700">2nd Exam</th>
+              <th className="border p-2 text-center font-medium text-gray-700">2nd Sem Avg</th>
+              <th className="border p-2 text-center font-medium text-gray-700">Final Avg</th>
             </tr>
           </thead>
           <tbody>
@@ -92,15 +94,14 @@ const GradeSheetTable: React.FC<GradeSheetTableProps> = ({ gradesheets, openModa
                 '2nd': '-',
                 '3rd': '-',
                 '1exam': '-',
-                '1a': '-',
                 '4th': '-',
                 '5th': '-',
                 '6th': '-',
                 '2exam': '-',
+                '1a': '-',
                 '2a': '-',
                 'f': '-',
               };
-              console.log(`Raw Subject Data for ${name}:`, JSON.stringify(subjectData, null, 2));
               const calculatedSubject = (
                 <GradeAverageCalculator subject={subjectData} />
               ).props.subject as { [key: string]: string };
@@ -109,21 +110,20 @@ const GradeSheetTable: React.FC<GradeSheetTableProps> = ({ gradesheets, openModa
                 acc[mappedKey] = calculatedSubject[key] || '-';
                 return acc;
               }, {} as { [key: string]: string });
-              console.log(`Mapped Data for subject ${name}:`, JSON.stringify(mappedData, null, 2));
               return (
-                <tr key={id} className="border">
-                  <td className="p-2">{mappedData.subject_name}</td>
-                  <td className="p-2 text-center">{mappedData.first_period}</td>
-                  <td className="p-2 text-center">{mappedData.second_period}</td>
-                  <td className="p-2 text-center">{mappedData.third_period}</td>
-                  <td className="p-2 text-center">{mappedData.first_exam}</td>
-                  <td className="p-2 text-center">{mappedData.sem1_avg}</td>
-                  <td className="p-2 text-center">{mappedData.fourth_period}</td>
-                  <td className="p-2 text-center">{mappedData.fifth_period}</td>
-                  <td className="p-2 text-center">{mappedData.sixth_period}</td>
-                  <td className="p-2 text-center">{mappedData.second_exam}</td>
-                  <td className="p-2 text-center">{mappedData.sem2_avg}</td>
-                  <td className="p-2 text-center">{mappedData.final_avg}</td>
+                <tr key={id} className="border-b hover:bg-gray-50">
+                  <td className="border p-2 text-gray-800">{mappedData.subject_name}</td>
+                  <td className="border p-2 text-center text-gray-600">{mappedData.first_period}</td>
+                  <td className="border p-2 text-center text-gray-600">{mappedData.second_period}</td>
+                  <td className="border p-2 text-center text-gray-600">{mappedData.third_period}</td>
+                  <td className="border p-2 text-center text-gray-600">{mappedData.first_exam}</td>
+                  <td className="border p-2 text-center text-gray-600">{mappedData.sem1_avg}</td>
+                  <td className="border p-2 text-center text-gray-600">{mappedData.fourth_period}</td>
+                  <td className="border p-2 text-center text-gray-600">{mappedData.fifth_period}</td>
+                  <td className="border p-2 text-center text-gray-600">{mappedData.sixth_period}</td>
+                  <td className="border p-2 text-center text-gray-600">{mappedData.second_exam}</td>
+                  <td className="border p-2 text-center text-gray-600">{mappedData.sem2_avg}</td>
+                  <td className="border p-2 text-center text-gray-600">{mappedData.final_avg}</td>
                 </tr>
               );
             })}

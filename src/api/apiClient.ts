@@ -17,7 +17,7 @@ import type {
 } from '../types';
 
 // Helper function to handle paginated or array responses
-const extractData = <T>(response: any): T[] => {
+export const extractData = <T>(response: any): T[] => {
   if (Array.isArray(response)) return response;
   if (response && typeof response === 'object' && Array.isArray(response.results)) {
     return response.results;
@@ -369,7 +369,7 @@ export const apiClient = {
 ): Promise<Subject[]> => {
       const {get} = useApi();
 try {
-  const response =await get <PaginatedResponse<Subject[]>>(`subjects/`, {
+  const response = await get <PaginatedResponse<Subject[]>>(`subjects/`, {
   params:{level_id:level_id, subject:subject, id:id}
   });
   console.log('Raw Subjects API Response:', JSON.stringify(response.data, null, 2));
@@ -418,7 +418,7 @@ createSubject: async (data: { subject: string; level_id: number }): Promise<Subj
     throw error;
   }
 },
-updateSubject: async (id: number, data: { subject: string; level_id: number }): Promise<Subject> => {
+updateSubject: async (id: number, data: {subject: string; level_id: number }): Promise<Subject> => {
   const {put} = useApi();
   try {
     const response = await put(`subjects/${id}/`, data, {

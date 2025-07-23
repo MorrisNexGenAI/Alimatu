@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useGradeSheets } from '../../../hooks/useGradeSheets';
 import Select from '../../../components/common/Select';
 import GradeSheetTable from '../../../components/grade_sheets/GradeSheetTable';
@@ -27,9 +27,7 @@ const BGradeSheetsPage: React.FC = () => {
     handleConfirmModal,
   } = useGradeSheets();
 
-  if (loading && !selectedLevelId && !selectedAcademicYearId) {
-    return <p className="b-gradesheet-message">Loading data...</p>;
-  }
+  const [selectedStudentId, setSelectedStudentId] = useState<number | null>(null);
 
   const levelOptions = [
     { value: '', label: 'Select Level' },
@@ -47,126 +45,154 @@ const BGradeSheetsPage: React.FC = () => {
     })) : []),
   ];
 
+  const handleStudentSelect = (studentId: number) => {
+    setSelectedStudentId(studentId);
+  };
+
+  const selectedGradeSheet = gradeSheets.find(
+    (sheet) => sheet.student_id === selectedStudentId
+  );
+
   return (
     <BomiTheme>
-      <div className="b-gradesheet-page p-4 max-w-7xl mx-auto">
-        <h2 className="b-gradesheet-title text-2xl font-bold mb-4">Grade Sheet Overview</h2>
+      <div className="b-gradesheet-container">
+        <div className="b-gradesheet-card">
+          <h2 className="b-gradesheet-title">Explore Student Grades</h2>
+          <p className="b-gradesheet-subtitle">Unlock academic insights with ease</p>
 
-        <div className="grid gap-4 sm:grid-cols-2 mb-4">
-          <Select
-            label="Level"
-            value={selectedLevelId?.toString() || ''}
-            onChange={handleLevelChange}
-            options={levelOptions}
-            disabled={loading}
-            error={errors.levels}
-          />
-          <Select
-            label="Academic Year"
-            value={selectedAcademicYearId?.toString() || ''}
-            onChange={handleAcademicYearChange}
-            options={academicYearOptions}
-            disabled={loading}
-            error={errors.academicYears}
-          />
-        </div>
-
-        <div className="mb-4">
-          <button
-            className={`bg-blue-500 text-white p-2 rounded text-sm ${loading || !selectedLevelId || !selectedAcademicYearId || pdfLoading?.[`level_${selectedLevelId}`] ? 'opacity-50' : ''}`}
-            onClick={() => openModal(null, 'print_level')}
-            disabled={loading || !selectedLevelId || !selectedAcademicYearId || pdfLoading?.[`level_${selectedLevelId}`]}
-          >
-            {pdfLoading?.[`level_${selectedLevelId}`] ? 'Generating...' : 'Generate PDF for Level'}
-          </button>
-          {pdfUrls[`level_${selectedLevelId}`] && (
-            <a
-              href={pdfUrls[`level_${selectedLevelId}`]}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="ml-4 text-blue-500 underline text-sm"
-            >
-              View Level PDF
-            </a>
-          )}
-        </div>
-
-        {selectedLevelId && selectedAcademicYearId && !loading && (
-          <div>
+          <div className="b-student-list">
+            <h3 className="b-student-list-title">Our Students</h3>
             {gradeSheets.length > 0 ? (
-              <div>
+              <ul className="b-student-list-items">
                 {gradeSheets.map((sheet) => (
-                  <div key={sheet.student_id} className="mb-6">
-                    <GradeSheetTable
-                      gradesheets={[{
-                        ...sheet,
-                        subjects: sheet.subjects.map(subj => ({
-                          subject_id: subj.subject_id,
-                          subject_name: subj.subject_name,
-                          first_period: subj['1st']?.toString() ?? '',
-                          second_period: subj['2nd']?.toString() ?? '',
-                          third_period: subj['3rd']?.toString() ?? '',
-                          first_exam: subj['1exam']?.toString() ?? '',
-                          fourth_period: subj['4th']?.toString() ?? '',
-                          fifth_period: subj['5th']?.toString() ?? '',
-                          sixth_period: subj['6th']?.toString() ?? '',
-                          second_exam: subj['2exam']?.toString() ?? '',
-                          sem1_avg: subj['1a']?.toString() ?? '',
-                          sem2_avg: subj['2a']?.toString() ?? '',
-                          final_avg: subj['f']?.toString() ?? '',
-                        }))
-                      }]}
-                      subjects={subjects}
-                      periods={periods}
-                      openModal={openModal}
-                      pdfUrls={pdfUrls}
-                      pdfLoading={pdfLoading}
-                    />
-                  </div>
+                  <li
+                    key={sheet.student_id}
+                    className={`b-student-item ${
+                      selectedStudentId === sheet.student_id ? 'b-student-item-selected' : ''
+                    }`}
+                    onClick={() => handleStudentSelect(sheet.student_id)}
+                  >
+                    <span className="b-student-dot"></span>
+                    <span className="b-student-name">{sheet.student_name}</span>
+                  </li>
                 ))}
-              </div>
+              </ul>
             ) : (
-              <p className="b-gradesheet-message">
-                {errors.grades || errors.students || 'No gradesheets found for this level and academic year'}
+              <p className="b-message b-message-error">
+                {errors.grades || errors.students || 'No students found for this level and academic year'}
               </p>
             )}
           </div>
-        )}
 
-        {loading && selectedLevelId && selectedAcademicYearId && (
-          <p className="b-gradesheet-message">Loading gradesheets...</p>
-        )}
-        {(!selectedLevelId || !selectedAcademicYearId) && (
-          <p className="b-gradesheet-message">Please select a level and academic year</p>
-        )}
+          <div className="b-gradesheet-selectors">
+            <Select
+              label="Level"
+              value={selectedLevelId?.toString() || ''}
+              onChange={handleLevelChange}
+              options={levelOptions}
+              disabled={loading}
+              error={errors.levels}
+              className="b-select"
+            />
+            <Select
+              label="Academic Year"
+              value={selectedAcademicYearId?.toString() || ''}
+              onChange={handleAcademicYearChange}
+              options={academicYearOptions}
+              disabled={loading}
+              error={errors.academicYears}
+              className="b-select"
+            />
+          </div>
 
-        {modal.show && (
-          <Modal onClose={closeModal}>
-            <div className="p-4 max-h-[80vh] overflow-y-auto">
-              <h2 className="text-lg font-medium mb-4">
-                Confirm {modal.action === 'print' ? 'Student Periodic PDF' : 'Level Periodic PDF'} Generation
-              </h2>
-              <p className="mb-4">
-                Are you sure you want to generate the{' '}
-                {modal.action === 'print' ? 'student' : 'level'} periodic report card?
-              </p>
-              <div className="flex justify-end gap-2">
+          {loading && !selectedLevelId && !selectedAcademicYearId && (
+            <p className="b-message">Loading data...</p>
+          )}
+
+          {selectedLevelId && selectedAcademicYearId && !loading && (
+            <div className="b-gradesheet-content">
+              <div className="b-gradesheet-table">
+                {selectedGradeSheet ? (
+                  <GradeSheetTable
+                    gradesheets={[selectedGradeSheet]}
+                    subjects={subjects}
+                    periods={periods}
+                    openModal={openModal}
+                    pdfUrls={pdfUrls}
+                    pdfLoading={pdfLoading}
+                  />
+                ) : (
+                  <p className="b-message">Select a student to view their academic journey</p>
+                )}
+              </div>
+
+              <div className="b-gradesheet-actions">
                 <button
-                  className="bg-gray-300 text-black p-2 rounded text-sm"
-                  onClick={closeModal}
+                  className={`b-button b-button-primary ${
+                    loading || !selectedLevelId || !selectedAcademicYearId || pdfLoading?.[`level_${selectedLevelId}`]
+                      ? 'b-button-disabled'
+                      : ''
+                  }`}
+                  onClick={() => openModal(null, 'print_level')}
+                  disabled={loading || !selectedLevelId || !selectedAcademicYearId || pdfLoading?.[`level_${selectedLevelId}`]}
                 >
-                  Cancel
+                  {pdfLoading?.[`level_${selectedLevelId}`] ? (
+                    <span className="b-button-loading">
+                      <svg className="b-spinner" viewBox="0 0 24 24">
+                        <circle className="b-spinner-path" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="b-spinner-path-fill" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                      </svg>
+                      Generating...
+                    </span>
+                  ) : (
+                    'Generate Level PDF'
+                  )}
                 </button>
-                <button
-                  className="bg-blue-500 text-white p-2 rounded text-sm"
-                  onClick={handleConfirmModal}
-                >
-                  Confirm
-                </button>
+                {pdfUrls[`level_${selectedLevelId}`] && (
+                  <a
+                    href={pdfUrls[`level_${selectedLevelId}`]}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="b-link"
+                  >
+                    View Level PDF
+                  </a>
+                )}
               </div>
             </div>
-          </Modal>
-        )}
+          )}
+
+          {loading && selectedLevelId && selectedAcademicYearId && (
+            <p className="b-message">Loading gradesheets...</p>
+          )}
+
+          {modal.show && (
+            <Modal onClose={closeModal}>
+              <div className="b-modal-content">
+                <h2 className="b-modal-title">
+                  Confirm {modal.action === 'print' ? 'Student' : 'Level'} PDF Generation
+                </h2>
+                <p className="b-modal-text">
+                  Ready to generate the {modal.action === 'print' ? 'student' : 'level'} periodic report card?
+                </p>
+                <div className="b-modal-actions">
+                  <button
+                    className="b-button b-button-secondary"
+                    onClick={closeModal}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="b-button b-button-primary"
+                    onClick={handleConfirmModal}
+                  >
+                    Confirm
+                  </button>
+                </div>
+              </div>
+            </Modal>
+          )}
+        </div>
       </div>
     </BomiTheme>
   );

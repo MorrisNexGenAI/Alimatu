@@ -1,31 +1,30 @@
 import React from 'react';
 import { AdminForm } from '../AdminForm';
-import type { Level } from '../../types/index';
 
-interface LevelsFormProps {
-  initialData?: Level;
-  onSubmit: (data: { name: string }) => void;
-  onCancel?: () => void;
+interface LevelFormProps {
+  onSubmit: (values: { name: string }) => void;
+  disabled?: boolean;
+  loading?: boolean;
+  initialValues?: { name: string };
 }
 
-export const LevelsForm: React.FC<LevelsFormProps> = ({ initialData, onSubmit, onCancel }) => {
+export const LevelForm: React.FC<LevelFormProps> = ({
+  onSubmit,
+  disabled,
+  loading,
+  initialValues,
+}) => {
   const fields = [
-    { name: 'name', label: 'Level Name (e.g., 7)', type: 'text' },
+    { name: 'name', label: 'Level Name', type: 'text' as const },
   ];
 
   return (
-    <div className="p-4 bg-white rounded shadow">
-      <AdminForm
-        fields={fields}
-        initialData={initialData}
-        onSubmit={onSubmit}
-        onCancel={onCancel}
-      />
-      {onCancel && (
-        <button onClick={onCancel} className="mt-2 text-red-500">
-          Cancel
-        </button>
-      )}
-    </div>
+    <AdminForm
+      fields={fields}
+      onSubmit={onSubmit}
+      disabled={disabled}
+      loading={loading}
+      initialValues={initialValues}
+    />
   );
 };
