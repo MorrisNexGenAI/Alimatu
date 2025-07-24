@@ -10,25 +10,22 @@ export const useSubjects = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedLevelId, setSelectedLevelId] = useState<number | null>(null);
 
-  // Fetch levels on mount
   const fetchLevels = async () => {
     setLoading(true);
     try {
       const levelResults = await apiClient.levels.getLevels();
-      console.log('Fetched Levels:', levelResults); // Why: Debug API response
+      console.log('Fetched Levels:', levelResults);
       setLevels(levelResults);
       setError(null);
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || 'Failed to fetch levels';
       setError(errorMessage);
       toast.error(errorMessage);
-      // Why: Avoid clearing levels to preserve existing data
     } finally {
       setLoading(false);
     }
   };
 
-  // Fetch subjects when selectedLevelId changes
   const fetchSubjects = async () => {
     if (!selectedLevelId) {
       setSubjects([]);
@@ -37,14 +34,13 @@ export const useSubjects = () => {
     setLoading(true);
     try {
       const subjectResponse = await apiClient.subjects.getSubjectsByLevel(selectedLevelId);
-      console.log('Fetched Subjects:', subjectResponse); // Why: Debug API response
+      console.log('Fetched Subjects:', subjectResponse);
       setSubjects(subjectResponse);
       setError(null);
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || 'Failed to fetch subjects';
       setError(errorMessage);
       toast.error(errorMessage);
-      // Why: Avoid clearing subjects to preserve existing data
     } finally {
       setLoading(false);
     }
@@ -58,16 +54,22 @@ export const useSubjects = () => {
     fetchSubjects();
   }, [selectedLevelId]);
 
-  const createSubject = async (data: { subject: string; level_id: number }) => {
+  const createSubject = async (data: { subject: string; level_id: string }) => {
     if (!selectedLevelId) {
       toast.error('Please select a level');
       return;
     }
+    const levelId = parseInt(data.level_id);
+    if (isNaN(levelId) || !levels.some(level => level.id === levelId)) {
+      toast.error('Invalid level ID');
+      return;
+    }
     setLoading(true);
     try {
-      console.log('Create Subject Payload:', data); // Why: Debug payload
-      const newSubject = await apiClient.subjects.createSubject(data);
-      await fetchSubjects(); // Why: Refetch to sync with backend
+      const payload = { subject: data.subject, level: levelId };
+      console.log('Create Subject Payload:', payload);
+      const newSubject = await apiClient.subjects.createSubject(payload);
+      await fetchSubjects();
       toast.success('Subject created successfully');
       setError(null);
       return newSubject;
@@ -81,12 +83,18 @@ export const useSubjects = () => {
     }
   };
 
-  const updateSubject = async (id: number, data: { subject: string; level_id: number }) => {
+  const updateSubject = async (id: number, data: { subject: string; level_id: string }) => {
+    const levelId = parseInt(data.level_id);
+    if (isNaN(levelId) || !levels.some(level => level.id === levelId)) {
+      toast.error('Invalid level ID');
+      return;
+    }
     setLoading(true);
     try {
-      console.log('Update Subject Payload:', { id, ...data }); // Why: Debug payload
-      const updatedSubject = await apiClient.subjects.updateSubject(id, data);
-      await fetchSubjects(); // Why: Refetch to sync with backend
+      const payload = { subject: data.subject, level: levelId };
+      console.log('Update Subject Payload:', { id, ...payload });
+      const updatedSubject = await apiClient.subjects.updateSubject(id, payload);
+      await fetchSubjects();
       toast.success('Subject updated successfully');
       setError(null);
       return updatedSubject;
@@ -104,7 +112,7 @@ export const useSubjects = () => {
     setLoading(true);
     try {
       await apiClient.subjects.deleteSubject(id);
-      await fetchSubjects(); // Why: Refetch to sync with backend
+      await fetchSubjects();
       toast.success('Subject deleted successfully');
       setError(null);
     } catch (err: any) {

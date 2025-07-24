@@ -401,40 +401,41 @@ try {
   throw error;
 }
 },
-createSubject: async (data: { subject: string; level_id: number }): Promise<Subject> => {
-  const {post} = useApi();
-  try {
-    const response = await post<Subject>(`subjects/`, data, {
-      headers: { 'X-CSRFToken': document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '' },
-    });
-    console.log('Create Subject Response:', JSON.stringify(response.data, null, 2));
-    return response.data;
-  } catch (error: any) {
-    console.error('Create Subject Error:', JSON.stringify({
-      message: error.message,
-      response: error.response?.data,
-      status: error.response?.status,
-    }, null, 2));
-    throw error;
-  }
-},
-updateSubject: async (id: number, data: {subject: string; level_id: number }): Promise<Subject> => {
-  const {put} = useApi();
-  try {
-    const response = await put(`subjects/${id}/`, data, {
-      headers: { 'X-CSRFToken': document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '' },
-    });
-    console.log('Update Subject Response:', JSON.stringify(response.data, null, 2));
-    return response.data;
-  } catch (error: any) {
-    console.error('Update Subject Error:', JSON.stringify({
-      message: error.message,
-      response: error.response?.data,
-      status: error.response?.status,
-    }, null, 2));
-    throw error;
-  }
-},
+createSubject: async (data: { subject: string; level: number }): Promise<Subject> => {
+    const { post } = useApi();
+    try {
+      const response = await post<Subject>('subjects/', data, {
+        headers: { 'X-CSRFToken': document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '' },
+      });
+      console.log('Create Subject Response:', JSON.stringify(response.data, null, 2));
+      return response.data;
+    } catch (error: any) {
+      console.error('Create Subject Error:', JSON.stringify({
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      }, null, 2));
+      throw error;
+    }
+  },
+  updateSubject: async (id: number, data: { subject: string; level: number }): Promise<Subject> => {
+    const { put } = useApi();
+    try {
+      const response = await put(`subjects/${id}/`, data, {
+        headers: { 'X-CSRFToken': document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '' },
+      });
+      console.log('Update Subject Response:', JSON.stringify(response.data, null, 2));
+      return response.data;
+    } catch (error: any) {
+      console.error('Update Subject Error:', JSON.stringify({
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      }, null, 2));
+      throw error;
+    }
+  },
+
 deleteSubject: async (id: number): Promise<void> => {
   const {del} = useApi();
   try {

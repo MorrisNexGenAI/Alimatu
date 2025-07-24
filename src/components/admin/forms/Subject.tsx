@@ -9,7 +9,6 @@ interface SubjectFormProps {
   initialValues?: Record<string, string>;
 }
 
-// Why: Creates a form for subjects with a required select field for level_id to prevent NOT NULL errors
 export const SubjectForm: React.FC<SubjectFormProps> = ({
   levels,
   onSubmit,
@@ -17,7 +16,6 @@ export const SubjectForm: React.FC<SubjectFormProps> = ({
   loading,
   initialValues,
 }) => {
-  // Why: Define fields for subject (text) and level_id (select), with required validation
   const fields = [
     { name: 'subject', label: 'Subject Name', type: 'text' as const, required: true },
     {
@@ -25,29 +23,30 @@ export const SubjectForm: React.FC<SubjectFormProps> = ({
       label: 'Level',
       type: 'select' as const,
       options: [
-        { value: '', label: 'Select a Level', disabled: true }, // Placeholder
+        { value: '', label: 'Select a Level', disabled: true },
         ...levels.map((level) => ({
           value: level.id.toString(),
           label: level.name,
         })),
       ],
-      required: true, // Why: Ensures level_id is selected
+      required: true,
     },
   ];
 
-  // Why: Set default level_id if levels exist and not editing, to avoid empty submissions
   const defaultValues = initialValues || {
     subject: '',
     level_id: levels.length > 0 ? levels[0].id.toString() : '',
   };
 
-  // Why: Pass fields, default values, and props to AdminForm, which handles form logic
+  // Disable form if no levels are available
+  const isFormDisabled = disabled || loading || levels.length === 0;
+
   return (
-    <div className="border border-red-500 p-4"> {/* Why: Debug visibility */}
+    <div className="border border-red-500 p-4">
+      {levels.length === 0 && <p className="text-red-500">No levels available. Please try again later.</p>}
       <AdminForm
         fields={fields}
         onSubmit={(values) => {
-          // Why: Validate required fields before submission
           if (!values.subject) {
             alert('Subject name is required');
             return;
@@ -56,10 +55,10 @@ export const SubjectForm: React.FC<SubjectFormProps> = ({
             alert('Please select a valid level');
             return;
           }
-          console.log('SubjectForm Submit:', values); // Why: Debug payload
+          console.log('SubjectForm Submit:', values);
           onSubmit(values);
         }}
-        disabled={disabled}
+        disabled={isFormDisabled}
         loading={loading}
         initialValues={defaultValues}
       />

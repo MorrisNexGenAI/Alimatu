@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { useRefresh } from '../context/RefreshContext';
@@ -7,7 +8,7 @@ import { Level, Student, AcademicYear } from '../types';
 export const useStudentManagement = () => {
   const { setRefresh } = useRefresh();
   const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
-  const [selectedAcademicYear, setSelectedAcademicYear] = useState<string | null>(null);
+  const [selectedAcademicYear, setSelectedAcademicYear] = useState<number | null>(null); // Changed to number
   const [levels, setLevels] = useState<Level[]>([]);
   const [selectedLevelId, setSelectedLevelId] = useState<number | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
@@ -18,15 +19,15 @@ export const useStudentManagement = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-  // Fetch academic years
   useEffect(() => {
     const fetchAcademicYears = async () => {
       setLoadingAcademicYears(true);
       try {
         const data = await apiClient.academicYears.getAcademicYears();
+        console.log('Fetched Academic Years:', data);
         setAcademicYears(data);
         const currentYear = data.find((year) => year.name === '2025/2026');
-        setSelectedAcademicYear(currentYear?.name || (data.length > 0 ? data[0].name : null));
+        setSelectedAcademicYear(currentYear?.id || (data.length > 0 ? data[0].id : null)); // Use id
       } catch (err) {
         toast.error('Failed to load academic years');
         setSelectedAcademicYear(null);
@@ -37,12 +38,12 @@ export const useStudentManagement = () => {
     fetchAcademicYears();
   }, []);
 
-  // Fetch levels
   useEffect(() => {
     const fetchLevels = async () => {
       setLoadingLevels(true);
       try {
         const data = await apiClient.levels.getLevels();
+        console.log('Fetched Levels:', data);
         setLevels(data);
         if (data.length > 0) setSelectedLevelId(data[0].id);
       } catch (err) {
@@ -55,7 +56,6 @@ export const useStudentManagement = () => {
     fetchLevels();
   }, []);
 
-  // Fetch students based on academic year and level
   useEffect(() => {
     if (!selectedAcademicYear || !selectedLevelId) {
       setStudents([]);
@@ -64,7 +64,9 @@ export const useStudentManagement = () => {
     const fetchStudents = async () => {
       setLoading(true);
       try {
+        console.log('Fetching students with:', { selectedLevelId, selectedAcademicYear });
         const data = await apiClient.students.getStudentsByLevel(selectedLevelId, selectedAcademicYear);
+        console.log('Fetched Students:', data);
         setStudents(data || []);
       } catch (err) {
         toast.error('Failed to load students');
@@ -76,19 +78,16 @@ export const useStudentManagement = () => {
     fetchStudents();
   }, [selectedAcademicYear, selectedLevelId]);
 
-  // Handle edit
   const handleEdit = (student: Student) => {
     setSelectedStudent(student);
     setIsEditModalOpen(true);
   };
 
-  // Handle delete confirmation
   const handleDelete = (student: Student) => {
     setSelectedStudent(student);
     setIsDeleteModalOpen(true);
   };
 
-  // Save edited student
   const handleSaveEdit = async () => {
     if (!selectedStudent) return;
     setLoading(true);
@@ -114,7 +113,6 @@ export const useStudentManagement = () => {
     }
   };
 
-  // Confirm delete
   const handleConfirmDelete = async () => {
     if (!selectedStudent) return;
     setLoading(true);
@@ -131,7 +129,6 @@ export const useStudentManagement = () => {
     }
   };
 
-  // Get level name from level_id
   const getLevelName = (levelId: number) => {
     const level = levels.find(l => l.id === levelId);
     return level ? level.name : 'Unknown';
@@ -149,7 +146,7 @@ export const useStudentManagement = () => {
     loadingLevels,
     loadingAcademicYears,
     selectedStudent,
-    setSelectedStudent, // Added to fix TS2552 errors
+    setSelectedStudent,
     isEditModalOpen,
     setIsEditModalOpen,
     isDeleteModalOpen,
